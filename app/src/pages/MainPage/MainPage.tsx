@@ -1,9 +1,11 @@
-import { Card, Col, Empty, Popover, Row, Space } from "antd"
-import { Guider, IPageRef, ImprovedRecipeDisplaySentenceScale, ImprovedRecipeDisplayWordScale, RecipeForm, TourContext } from "../../components"
+import { Card, Col, Empty, Popover, Row, Space, Typography } from "antd"
+import { Guider, IPageRef, UserHighlightWeExplain, UserHighlightWeExplain_word, RecipeForm, TourContext, UserHighlightUserExplain, UserHighlightUserExplain_word } from "../../components"
 import { useContext, useEffect, useRef, useState } from "react";
 import { BackendInput, ImprovedRecipe, BackendResponse, BackendUserResult, BackendUserResultDetails } from "../../types";
 import { NotificationInstance } from "antd/es/notification/interface";
 import { BulbOutlined, QuestionOutlined } from "@ant-design/icons";
+import { WeHighlightUserExplain, WeHighlightUserExplain_word } from "../../components/ImprovedRecipe/WeHighlightUserExplain";
+import { WeHighlightWeExplain, WeHighlightWeExplain_word } from "../../components/ImprovedRecipe/WeHighlightWeExplain";
 
 
 type MainPageProps = {
@@ -31,23 +33,36 @@ export const MainPage: React.FC<MainPageProps> = ({api, setActivePage, currentMo
     const [revealExtraWord, setRevealExtraWord] = useState<() => void>(() => () => {});
     const [revealAllWords, setRevealAllWords] = useState<() => void>(() => () => {});
     // Does the cookie savedImprovedRecipe exist? (for debugging)
-    // const savedImprovedRecipe = document.cookie.split(';').find((cookie) => cookie.includes('savedImprovedRecipe'))?.split('=')[1];
+    const savedImprovedRecipe = document.cookie.split(';').find((cookie) => cookie.includes('savedImprovedRecipe'))?.split('=')[1];
+    // If it exists parse the JSON
+    const parsedImprovedRecipe = savedImprovedRecipe ? JSON.parse(savedImprovedRecipe) as ImprovedRecipe : undefined;
     const [improvedRecipe, setImprovedRecipe] = useState<ImprovedRecipe|undefined>();
     const [improvedRecipeLoading, setimprovedRecipeLoading] = useState(false);
+    // we will be displaying a different version of the app depending on the userId
+    // So we get the userId, hash it then do modulo4 to get the version
+    // Versions are as follows:
+    // 0: User highlight & User explain
+    // 1: User highlight & AI explain
+    // 2: AI highlight & User explain
+    // 3: AI highlight & AI explain
+    const appVersion = parseInt(document.cookie.split(';').find((cookie) => cookie.includes('userId'))?.split('=')[1] || '0', 10) % 4;
+
     // Ref Map
     const refMap: Record<string, React.RefObject<HTMLDivElement>> = {};
     refMap['improved-recipe-wrapper'] = useRef<HTMLDivElement>(null);
     refMap['reveal-next-change'] = useRef<HTMLDivElement>(null);
     refMap['reveal-all-changes'] = useRef<HTMLDivElement>(null);
     
-    const [refState, _] = useState<IPageRef[]>([{
+    const [refState, _] = useState<IPageRef[]>([
+        {
             title: 'Your improved recipe will be here!',
-            content: `You will be asked to find out the changes either in word-scale or sentence-scale(Remember you can always the scale from the menu!)`,
+            content: appVersion < 2 ? `You will be asked to find out the changes either in word-scale or sentence-scale(Remember you can always the scale from the menu!)` : 'The changes will already be highlighted for you!',
             target: refMap['improved-recipe-wrapper'],
             onClose: () => {
                 setCurrentPage(4);
             }
         },
+        ...( appVersion < 2 ? [
         {
             title: 'Reveal the changes!',
             content: 'Click here to reveal one of the changes!',
@@ -57,13 +72,14 @@ export const MainPage: React.FC<MainPageProps> = ({api, setActivePage, currentMo
             }
         },
         {
-            title: 'Reavel the changes!',
+            title: 'Reveal the changes!',
             content: 'Click here to reveal all of the changes!',
             target: refMap['reveal-all-changes'],
             onClose: () => {
                 setCurrentPage(4);
             }
         }
+    ] : [])
     ]);
 
 
@@ -76,10 +92,10 @@ export const MainPage: React.FC<MainPageProps> = ({api, setActivePage, currentMo
                 annotations: data.annotations,
             });
             // Save the improved recipe to cookie (for debugging)
-            // document.cookie = `savedImprovedRecipe=${JSON.stringify({
-            //     recipeText: data.example_recipe,
-            //     annotations: data.annotations,
-            // })}`;
+            document.cookie = `savedImprovedRecipe=${JSON.stringify({
+                recipeText: data.example_recipe,
+                annotations: data.annotations,
+            })}`;
             setimprovedRecipeLoading(false);
             setStep(2);
             api.success({
@@ -92,10 +108,14 @@ export const MainPage: React.FC<MainPageProps> = ({api, setActivePage, currentMo
         const handleError = (error: Event) => {
             console.error("WebSocket error:", error);
             setimprovedRecipeLoading(false);
-            if(currentStep !== 2){
+            if(!doTour){
+                console.log("Websocket error while not in tour");
                 setOriginalRecipe('');
                 setImprovedRecipe(undefined);
                 setStep(0);
+            }
+            else{
+                console.log("Websocket error while in tour");
             }
         }
 
@@ -107,7 +127,7 @@ export const MainPage: React.FC<MainPageProps> = ({api, setActivePage, currentMo
             setOnChildDataReceive(() => {});
             setOnChildErrorReceive(() => {});
         };
-    }, [setOnChildDataReceive, setOnChildErrorReceive]);
+    }, [setOnChildDataReceive, setOnChildErrorReceive, doTour]);
 
     const submitHit = async (recipe: string, improvementLevel: number, fromTour?: boolean) => {
         // console.log('Submitting recipe mainpage: ', recipe, fromTour)
@@ -227,6 +247,8 @@ export const MainPage: React.FC<MainPageProps> = ({api, setActivePage, currentMo
                 <RecipeForm submitHit={submitHit} currentStep={currentStep} api={api}/>
             </Col>
             <Col span={12}>
+                {  // App version 0 & 1 has the user highlighting the changes, thus we require the reveal buttons
+                appVersion < 2 && (
                 <Card 
                 title="Improved Recipe" 
                 loading={improvedRecipeLoading}
@@ -243,24 +265,73 @@ export const MainPage: React.FC<MainPageProps> = ({api, setActivePage, currentMo
                         <BulbOutlined onClick={revealAllWords} ref={refMap['reveal-all-changes']}/>
                     </Popover>,
                 ]}>
-                    {improvedRecipe && currentMode === 'sentence' && (
-                    <ImprovedRecipeDisplaySentenceScale 
+                    { appVersion === 1 && improvedRecipe && currentMode === 'sentence' && (
+                    <UserHighlightWeExplain 
                         improvedRecipe={improvedRecipe}
                         sendUserResults={finishReview}
                         setRevealExtraWord={setRevealExtraWord}
                         setRevealAllWords={setRevealAllWords}
                     />)}
-                    {improvedRecipe && currentMode === 'word' && (
-                    <ImprovedRecipeDisplayWordScale 
+                    {appVersion === 1 && improvedRecipe && currentMode === 'word' && (
+                    <UserHighlightWeExplain_word 
                         improvedRecipe={improvedRecipe}
                         sendUserResults={finishReview}
                         setRevealExtraWord={setRevealExtraWord}
                         setRevealAllWords={setRevealAllWords}
                     />)}
+                    {appVersion === 0 && improvedRecipe && currentMode === 'sentence' && (
+                        <UserHighlightUserExplain 
+                            improvedRecipe={improvedRecipe}
+                            sendUserResults={finishReview}
+                            setRevealExtraWord={setRevealExtraWord}
+                            setRevealAllWords={setRevealAllWords}
+                        />
+                    )}
+                    {appVersion === 0 && improvedRecipe && currentMode === 'word' && (
+                        <UserHighlightUserExplain_word
+                            improvedRecipe={improvedRecipe}
+                            sendUserResults={finishReview}
+                            setRevealExtraWord={setRevealExtraWord}
+                            setRevealAllWords={setRevealAllWords}
+                        />
+                    )}
                     {!improvedRecipe && (<Empty
                     description='No recipe yet!'
                     />)}                
                 </Card>
+            )}
+            { appVersion >= 2 && (
+                <Card 
+                title="Improved Recipe" 
+                loading={improvedRecipeLoading}
+                ref={refMap['improved-recipe-wrapper']}>
+                    { appVersion === 2 && improvedRecipe && currentMode === 'sentence' && (
+                    <WeHighlightUserExplain 
+                        improvedRecipe={improvedRecipe}
+                        sendUserResults={finishReview}
+                    />)}
+                    {appVersion === 2 && improvedRecipe && currentMode === 'word' && (
+                    <WeHighlightUserExplain_word 
+                        improvedRecipe={improvedRecipe}
+                        sendUserResults={finishReview}
+                    />)}
+                    {appVersion === 3 && improvedRecipe && currentMode === 'sentence' && (
+                        <WeHighlightWeExplain
+                            improvedRecipe={improvedRecipe}
+                            sendUserResults={finishReview}
+                        />
+                    )}
+                    {appVersion === 3 && improvedRecipe && currentMode === 'word' && (
+                        <WeHighlightWeExplain_word
+                            improvedRecipe={improvedRecipe}
+                            sendUserResults={finishReview}
+                        />
+                    )}
+                    {!improvedRecipe && (<Empty
+                    description='No recipe yet!'
+                    />)}                
+                </Card>
+            )}
             </Col>
         </Row>
     </Space>

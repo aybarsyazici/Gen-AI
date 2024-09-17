@@ -1,10 +1,10 @@
-import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Form, Popover, Button, Typography } from 'antd';
 import './ImprovedRecipeDisplay.css';
-import { BackendUserResultDetails, ImprovedRecipe } from '../../types';
+import { BackendUserResultDetails, ImprovedRecipe } from '../../../types';
 import { DislikeOutlined, LikeOutlined } from '@ant-design/icons';
 import confetti from 'canvas-confetti'; // Import the library
-import { IPageRef, TourContext } from '..';
+import { IPageRef, TourContext } from '../..';
 
 type ImprovedRecipeDisplayProps = {
     improvedRecipe: ImprovedRecipe;
@@ -12,6 +12,87 @@ type ImprovedRecipeDisplayProps = {
     setRevealExtraWord: (fn: () => void) => void;
     setRevealAllWords: (fn: () => void) => void;
 };
+
+interface ClickableWordProps {
+    wordExplanation: string,
+    currentWordIndex: number,
+    handleAccept: (index: number) => void,
+    handleDecline: (index: number) => void,
+    showPopover: boolean;
+    setShowPopover: (index: number | null) => void;
+    word: string,
+    toggleWordSelection:  (word: string, index: number) => void;
+    wordStyle: React.CSSProperties,
+    index: number,
+    likeButtonRef: React.RefObject<HTMLDivElement> | undefined,
+    dislikeButtonRef: React.RefObject<HTMLDivElement> | undefined,
+    popRef: React.RefObject<HTMLDivElement> | undefined,
+    spanRef: React.RefObject<HTMLSpanElement> | undefined,
+}
+
+interface ClickableWordPropsTemp {
+    word: string;
+    wordIndex: number;
+    lineIndex: number;
+}
+
+interface LineBreakProps {
+    lineIndex: number;
+}
+
+const ClickableWord: React.FC<ClickableWordProps> = React.memo(({
+    wordExplanation, 
+    currentWordIndex,
+    handleAccept,
+    handleDecline,
+    showPopover,
+    setShowPopover,
+    word,
+    toggleWordSelection,
+    wordStyle,
+    likeButtonRef,
+    dislikeButtonRef,
+    popRef,
+    spanRef,
+}) => {
+    console.log('word rerender: ', currentWordIndex, "& Got style: ", wordStyle);
+    return (
+        <Popover
+            content={
+                <div>
+                    <Typography.Text>{wordExplanation}</Typography.Text>
+                    <div className="like-dislike-container">
+                        <Button className="like-button" onClick={() => handleAccept(currentWordIndex)} ref={likeButtonRef}>
+                            <LikeOutlined />
+                        </Button>
+                        <Button className="dislike-button" onClick={() => handleDecline(currentWordIndex)}
+                        ref={dislikeButtonRef}>
+                            <DislikeOutlined />
+                        </Button>
+                    </div>
+                </div>
+            }
+            title="Word Selection"
+            trigger="click"
+            visible={showPopover}
+            onVisibleChange={(visible) => !visible && setShowPopover(null)}
+            key={currentWordIndex}
+            ref={popRef}
+        >
+            <span
+                onClick={() => toggleWordSelection(word, currentWordIndex)}
+                style={{ ...wordStyle, marginRight: '5px', cursor: 'pointer' }}
+                ref={spanRef}
+            >
+                {word}{' '}
+            </span>
+        </Popover>
+    );
+}, (prevProps, nextProps) => {
+    return prevProps.word === nextProps.word && JSON.stringify(prevProps.wordStyle) === JSON.stringify(nextProps.wordStyle) &&
+        prevProps.showPopover === nextProps.showPopover && prevProps.wordExplanation === nextProps.wordExplanation
+        && ((prevProps.spanRef && prevProps.spanRef.current) === (nextProps.spanRef && nextProps.spanRef.current));
+});
 
 export const ImprovedRecipeDisplayWordScale: React.FC<ImprovedRecipeDisplayProps> = ({ improvedRecipe, 
     sendUserResults, 
@@ -98,30 +179,38 @@ export const ImprovedRecipeDisplayWordScale: React.FC<ImprovedRecipeDisplayProps
     const finishReview = () => {
         const res: BackendUserResultDetails = {
             improvedRecipe: recipeText,
-            selectedIndexes: selectedWords,
+            selectedIndexes: Object.fromEntries(selectedWords),
             timestamp: new Date().toISOString(),
             mode: 'word',
+            variant: 'UserHighlightWeExplain',
         };
         sendUserResults(res);
     };
 
-    const toggleWordSelection = (word: string, index: number) => {
+    const toggleWordSelection = useCallback((word: string, index: number) => {
         // Check if word is in annotations
         if (annotations[word]?.some(([_, wordIndex]) => wordIndex === index)) {
-            setSelectedWords(new Map(selectedWords.set(index, 'correct')));
+            setSelectedWords((prevSelectedWords) => {
+                const newSelectedWords = new Map(prevSelectedWords);
+                newSelectedWords.set(index, 'correct');
+                return newSelectedWords
+            });
             setShowPopover(index);
         } else {
-            setSelectedWords(new Map(selectedWords.set(index, 'incorrect')));
-            // Set timeout to clear the incorrect status after animation duration
+            setSelectedWords((prevSelectedWords) => {
+                const newSelectedWords = new Map(prevSelectedWords);
+                newSelectedWords.delete(index); // Remove the incorrect status
+                return newSelectedWords;
+            });
             setTimeout(() => {
                 setSelectedWords((prevSelectedWords) => {
                     const newSelectedWords = new Map(prevSelectedWords);
-                    newSelectedWords.delete(index); // Remove the incorrect status
+                    newSelectedWords.set(index, 'incorrect');
                     return newSelectedWords;
                 });
-            }, 1000); // Assuming the animation duration is 1 second
+            }, 0);
         }
-    };
+    },[annotations, setSelectedWords, setShowPopover]);
 
     const handleAccept = (index: number) => {
         setSelectedWords(new Map(selectedWords.set(index, 'accepted')));
@@ -189,7 +278,7 @@ export const ImprovedRecipeDisplayWordScale: React.FC<ImprovedRecipeDisplayProps
             case 'correct':
                 return { backgroundColor: '#f0f5ff', border: '1px solid #1890ff', borderRadius: '4px', padding: '2px' };
             case 'incorrect':
-                return { backgroundColor: '#ffa39e', animation: 'fadeBack 1s', borderRadius: '4px', padding: '2px' }; // Light red
+                return { backgroundColor: '#ffa39e', animation: 'fadeBack 1s forwards', borderRadius: '4px', padding: '2px' }; // Light red
             case 'accepted':
                 return { backgroundColor: '#b7eb8f', border: '1px solid #52c41a', borderRadius: '4px', padding: '2px' }; // Light green
             case 'declined':
@@ -199,75 +288,35 @@ export const ImprovedRecipeDisplayWordScale: React.FC<ImprovedRecipeDisplayProps
         }
     };
     
+    const words = useMemo(()=>{ 
+        let wordIndex = 0; // Initialize a counter to keep track of the word index
+        const toReturn = recipeText.split('\n').flatMap((line, lineIndex) => {
+            if (line.trim().length === 0) {
+                return [{
+                    lineIndex: lineIndex,
+                } as LineBreakProps];
+            }
+            //console.log('line-split', line.split(/\s+/));
+            const mappingTemp = line.split(/\s+/).filter((word)=>word.trim().length>0);
+            //console.log('mappingTemp: ', mappingTemp)
+            const wordElements = mappingTemp.map((word) => {
+                const currentWordIndex = wordIndex; // Store the current word index
+                wordIndex++; // Increment the wordIndex for the next word
+                return {
+                    word: word,
+                    lineIndex: lineIndex,
+                    wordIndex: currentWordIndex,
+                } as ClickableWordPropsTemp;
+            });
 
-    let wordIndex = 0; // Initialize a counter to keep track of the word index
-
-    const words = recipeText.split('\n').flatMap((line, lineIndex) => {
-        if (line.trim().length === 0) {
-            return [<br key={`br-${lineIndex}`} />];
-        }
-        //console.log('line-split', line.split(/\s+/));
-        const mappingTemp = line.split(/\s+/).filter((word)=>word.trim().length>0);
-        //console.log('mappingTemp: ', mappingTemp)
-        const wordElements = mappingTemp.map((word) => {
-            const currentWordIndex = wordIndex; // Store the current word index
-            wordIndex++; // Increment the wordIndex for the next word
-
-            return (
-                <Popover
-                    content={
-                        <div>
-                            <p>Explanation for {word}</p>
-                            <div className="like-dislike-container">
-                                <Button className="like-button" onClick={() => handleAccept(currentWordIndex)} ref={
-                                    (doTour && currentPage === 3 && currentWordIndex === 0 ? refMap['first-word-pop-like'] :
-                                    (doTour && currentPage === 3 && currentWordIndex === 2 ? refMap['second-word-pop-like'] :
-                                    (doTour && currentPage === 3 && currentWordIndex === 9 ? refMap['third-word-pop-like'] : undefined))
-                                )
-                                }>
-                                    <LikeOutlined />
-                                </Button>
-                                <Button className="dislike-button" onClick={() => handleDecline(currentWordIndex)}
-                                ref={
-                                    (doTour && currentPage === 3 && currentWordIndex === 0 ? refMap['first-word-pop-dislike'] :
-                                    (doTour && currentPage === 3 && currentWordIndex === 2 ? refMap['second-word-pop-dislike'] :
-                                    (doTour && currentPage === 3 && currentWordIndex === 9 ? refMap['third-word-pop-dislike'] : undefined))
-                                )
-                                }>
-                                    <DislikeOutlined />
-                                </Button>
-                            </div>
-                        </div>
-                    }
-                    title="Word Selection"
-                    trigger="click"
-                    visible={showPopover === currentWordIndex}
-                    onVisibleChange={(visible) => !visible && setShowPopover(null)}
-                    key={currentWordIndex}
-                    ref={
-                        (doTour && currentPage === 3 && currentWordIndex === 0 ? refMap['first-word-pop'] :
-                        (doTour && currentPage === 3 && currentWordIndex === 2 ? refMap['second-word-pop'] :
-                        (doTour && currentPage === 3 && currentWordIndex === 9 ? refMap['third-word-pop'] : undefined)))
-                    }
-                >
-                    <span
-                        onClick={() => toggleWordSelection(word, currentWordIndex)}
-                        style={{ ...getWordStyle(selectedWords.get(currentWordIndex)), marginRight: '5px', cursor: 'pointer' }}
-                        ref={
-                            doTour && currentPage === 3 && currentWordIndex === 0 ? refMap['first-word'] :
-                            (doTour && currentPage === 3 && currentWordIndex === 2 ? refMap['second-word'] :
-                            (doTour && currentPage === 3 && currentWordIndex === 9 ? refMap['third-word'] : undefined))
-                        }
-                    >
-                        {word}{' '}
-                    </span>
-                </Popover>
-            );
-        });
-
-        // Add a line break after each line
-        return [...wordElements, <br key={`br-${lineIndex}`} />];
-    });
+            // Add a line break after each line
+            return [...wordElements, {
+                lineIndex: lineIndex,
+            } as LineBreakProps];
+        })
+        console.log('toReturn: ', toReturn);
+        return toReturn;
+    }, [recipeText]);
 
     // Animation classes added to the elements
     const submitButtonClass = allWordsSelected ? "submit-button-enter" : "";
@@ -277,7 +326,41 @@ export const ImprovedRecipeDisplayWordScale: React.FC<ImprovedRecipeDisplayProps
             <span ref={refMap['all-word-wrapper']}>
                 <Form.Item>
                     <div style={{ whiteSpace: 'pre-wrap', userSelect: 'text' }}>
-                        {words}
+                        {words.map((word, _) => {
+                            // Check if word is of type LineBreakProps or ClickableWordPropsTemp
+                            if (!('word' in word)) {
+                                return <br key={`br-${word.lineIndex}`} />;
+                            }
+                            const { word: currentWord, lineIndex, wordIndex } = word as ClickableWordPropsTemp;
+
+                            return <ClickableWord
+                            wordExplanation={`Explanation for ${currentWord}`}
+                            currentWordIndex={wordIndex}
+                            handleAccept={handleAccept}
+                            handleDecline={handleDecline}
+                            showPopover={showPopover === wordIndex}
+                            setShowPopover={setShowPopover}
+                            word={currentWord}
+                            toggleWordSelection={toggleWordSelection}
+                            wordStyle={getWordStyle(selectedWords.get(wordIndex))}
+                            key={`word-${lineIndex}-${wordIndex}`}
+                            index={wordIndex}
+                            likeButtonRef={(doTour && currentPage === 3 && wordIndex === 0 ? refMap['first-word-pop-like'] :
+                            (doTour && currentPage === 3 && wordIndex === 2 ? refMap['second-word-pop-like'] :
+                            (doTour && currentPage === 3 && wordIndex === 9 ? refMap['third-word-pop-like'] : undefined))
+                            )}
+                            dislikeButtonRef={(doTour && currentPage === 3 && wordIndex === 0 ? refMap['first-word-pop-dislike'] :
+                            (doTour && currentPage === 3 && wordIndex === 2 ? refMap['second-word-pop-dislike'] :
+                            (doTour && currentPage === 3 && wordIndex === 9 ? refMap['third-word-pop-dislike'] : undefined))
+                            )}
+                            popRef={(doTour && currentPage === 3 && wordIndex === 0 ? refMap['first-word-pop'] :
+                            (doTour && currentPage === 3 && wordIndex === 2 ? refMap['second-word-pop'] :
+                            (doTour && currentPage === 3 && wordIndex === 9 ? refMap['third-word-pop'] : undefined)))}
+                            spanRef={doTour && currentPage === 3 && wordIndex === 0 ? refMap['first-word'] :
+                            (doTour && currentPage === 3 && wordIndex === 2 ? refMap['second-word'] :
+                            (doTour && currentPage === 3 && wordIndex === 9 ? refMap['third-word'] : undefined))}
+                            />
+                        })}
                     </div>
                 </Form.Item>
             </span>

@@ -62,6 +62,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
         });
         return;
       }
+      setCurrentMode && setCurrentMode('word');
       setDoTour(true);
       setCurrentPage(-1);
     }

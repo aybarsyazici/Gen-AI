@@ -1,9 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Form, Popover, Button, Typography, theme } from 'antd';
 import './ImprovedRecipeDisplay.css';
-import { BackendUserResultDetails, ImprovedRecipe } from '../../types';
+import { BackendUserResultDetails, ImprovedRecipe } from '../../../types';
 import { DislikeOutlined, LikeOutlined } from '@ant-design/icons';
 import confetti from 'canvas-confetti'; // Import the library
+import TextArea from 'antd/es/input/TextArea';
 
 type ImprovedRecipeDisplayProps = {
     improvedRecipe: ImprovedRecipe;
@@ -15,22 +16,22 @@ type ImprovedRecipeDisplayProps = {
 interface ClickableSentenceProps {
     sentence: string;
     index: number;
-    onAccept: (index: number) => void;
-    onDecline: (index: number) => void;
+    onAccept: (index: number, sentenceExplanation: string) => void;
+    onDecline: (index: number, sentenceExplanation: string) => void;
     toggleSelection: (index: number) => void;
     showPopover: boolean;
     setShowPopover: (index: number | null) => void;
     getSentenceStyle?: (index: number) => React.CSSProperties;
     wordsIncluded: {word: string, wordIndex: number}[];
     sentenceStyle?: React.CSSProperties;
+    sentenceExplanation: string;
+    handleExplanationChange: (index: number, newExplanation: string) => void;
 }
 
 type BreakElementProps = {}
 type ClickableSentenceTempProps = {
     sentence: string;
     index: number;
-    onAccept: (index: number) => void;
-    onDecline: (index: number) => void;
     toggleSelection: (index: number) => void;
     wordsIncluded: {word: string, wordIndex: number}[];
 }
@@ -44,19 +45,29 @@ const ClickableSentence: React.FC<ClickableSentenceProps> = React.memo(({
     toggleSelection,
     showPopover,
     setShowPopover,
+    sentenceExplanation,
+    handleExplanationChange,
     sentenceStyle,
 }) => {
-    // console.log('Rendering sentence', sentence)
+    console.log('Rendering sentence', index)
     return (
         <Popover
             content={
                 <div>
-                    <p>Explanation for {sentence}</p>
+                    <TextArea
+                        placeholder="Write a small explanation, at least 5 characters"
+                        autoSize={{ minRows: 3, maxRows: 5 }}
+                        style={{ marginBottom: '5px' }}
+                        value={sentenceExplanation}
+                        onChange={(e) => {
+                            handleExplanationChange(index, e.target.value);
+                        }}                  
+                    />
                     <div className="like-dislike-container">
-                        <Button className="like-button" onClick={() => onAccept(index)}>
+                        <Button className="like-button" onClick={() => onAccept(index, sentenceExplanation)}>
                             <LikeOutlined />
                         </Button>
-                        <Button className="dislike-button" onClick={() => onDecline(index)}>
+                        <Button className="dislike-button" onClick={() => onDecline(index, sentenceExplanation)}>
                             <DislikeOutlined />
                         </Button>
                     </div>
@@ -75,13 +86,17 @@ const ClickableSentence: React.FC<ClickableSentenceProps> = React.memo(({
             </span>
         </Popover>
     );
-});
+},(prevProps, nextProps) => 
+    prevProps.showPopover === nextProps.showPopover && 
+    prevProps.sentenceExplanation === nextProps.sentenceExplanation &&
+    JSON.stringify(prevProps.sentenceStyle) === JSON.stringify(nextProps.sentenceStyle));
 
 export const ImprovedRecipeDisplaySentenceScale: React.FC<ImprovedRecipeDisplayProps> = ({ improvedRecipe, 
     sendUserResults, 
     setRevealExtraWord,
     setRevealAllWords
  }) => {
+    const [sentenceExplanations, setSentenceExplanations] = useState<Map<number, string>>(new Map());
     const [selectedSentences, setSelectedSentences] = useState<Map<number, string>>(new Map());
     const [showPopover, setShowPopover] = useState<number | null>(null);
     const [allWordsSelected, setAllWordsSelected] = useState<boolean>(false);
@@ -143,48 +158,48 @@ export const ImprovedRecipeDisplaySentenceScale: React.FC<ImprovedRecipeDisplayP
     useEffect(() => {
         setRevealExtraWord(() => () => {
             // Find index that is in annotations but not in selectedWords
-            const indicesInAnnotations = Array.from(indices);
+            const indicesInAnnotations = Array.from(indices).map((index) => wordToSentenceIndex.get(index));
             const indicesInSelectedWords = Array.from(selectedSentences.keys());
-            const indicesNotSelected = indicesInAnnotations.filter((index) => !indicesInSelectedWords.includes(index));
+            console.log('Indices in annotations', indicesInAnnotations)
+            console.log('Indices in selected words', selectedSentences)
+            const indicesNotSelected = indicesInAnnotations.filter((index) => index !== undefined && !indicesInSelectedWords.includes(index));
+            console.log('Indices not selected', indicesNotSelected)
             // console.log('Indices in annotations', indicesInAnnotations)
             // console.log('Indices in selected words', indicesInSelectedWords)
             // console.log('Indices not selected', indicesNotSelected)
             const randomIndex = indicesNotSelected[Math.floor(Math.random() * indicesNotSelected.length)];
             // console.log('Random index', randomIndex)
-            const sentenceIndex = wordToSentenceIndex.get(randomIndex);
             // console.log('Sentence index', sentenceIndex)
-            if (sentenceIndex !== undefined) {
+            if (randomIndex !== undefined) {
                 setSelectedSentences(prev => {
                     const newSelected = new Map(prev);
-                    newSelected.set(sentenceIndex, 'correct');
+                    newSelected.set(randomIndex, 'correct');
                     return newSelected;
                 });
-                setShowPopover(sentenceIndex);
+                setShowPopover(randomIndex);
             }
         });
         setRevealAllWords(() => () => {
             // Find ALL indices that are in annotations but not in selectedWords
-            const indicesInAnnotations = Array.from(indices);
+            const indicesInAnnotations = Array.from(indices).map((index) => wordToSentenceIndex.get(index));
             const indicesInSelectedWords = Array.from(selectedSentences.keys());
-            const indicesNotSelected = indicesInAnnotations.filter((index) => !indicesInSelectedWords.includes(index));
+            const indicesNotSelected = indicesInAnnotations.filter((index) => index !== undefined && !indicesInSelectedWords.includes(index));
             // console.log('Indices in annotations', indicesInAnnotations)
             // console.log('Indices in selected words', indicesInSelectedWords)
             // console.log('Indices not selected', indicesNotSelected)
             // console.log('Sentence Indices not selected', indicesNotSelected.map((index) => wordToSentenceIndex.get(index)))
             indicesNotSelected.forEach((randomIndex) => {
-                const sentenceIndex = wordToSentenceIndex.get(randomIndex);
                 // console.log('Random index', randomIndex)
                 // console.log('Sentence index', sentenceIndex)
-                if (sentenceIndex !== undefined) {
+                if (randomIndex !== undefined) {
                     setSelectedSentences(prev => {
                         const newSelected = new Map(prev);
-                        newSelected.set(sentenceIndex, 'correct');
+                        newSelected.set(randomIndex, 'correct');
                         return newSelected;
                     });
-                    setShowPopover(sentenceIndex);
+                    setShowPopover(randomIndex);
                 }
             });
-
         });
     }, [selectedSentences, indices, wordToSentenceIndex]);
 
@@ -213,39 +228,55 @@ export const ImprovedRecipeDisplaySentenceScale: React.FC<ImprovedRecipeDisplayP
     const finishReview = () => {
         const res: BackendUserResultDetails = {
             improvedRecipe: recipeText,
-            selectedIndexes: selectedSentences,
+            selectedIndexes: Object.fromEntries(selectedSentences),
+            providedExplanations: Object.fromEntries(sentenceExplanations || new Map()),
             timestamp: new Date().toISOString(),
             sentences: sentences,
             mode: 'sentence',
+            variant: 'UserHighlightUserExplain',
         };
         // console.log('Sending to trace backend: ', res)
         sendUserResults(res);
     };
-    useEffect(()=>{
-        const handleAccept = (sentenceIndex: number) => {
-            setSelectedSentences(prev => {
-                const newSelected = new Map(prev);
-                newSelected.set(sentenceIndex, 'accepted');
-                return newSelected;
-            });
-            setShowPopover(null);
-        };
-        
-        const handleDecline = (sentenceIndex: number) => {
-            setSelectedSentences(prev => {
-                const newSelected = new Map(prev);
-                newSelected.set(sentenceIndex, 'declined');
-                return newSelected;
-            });
-            setShowPopover(null);
-        };
 
+    // useCallback to memoize the function
+    const handleAccept = useCallback((index: number, sentenceExplanation: string) => {
+        // Check whether the explanation is longer than 5 characters
+        console.log('Current explanation', sentenceExplanation)
+        if (sentenceExplanation.length < 5) {
+            return;
+        }
+        setSelectedSentences(prev => {
+            const newSelected = new Map(prev);
+            newSelected.set(index, 'accepted');
+            return newSelected;
+        });
+        setShowPopover(null);
+    }, []);
+
+    // useCallback to memoize the function
+    const handleDecline = useCallback((index: number, sentenceExplanation: string) => {
+        // Check whether the explanation is longer than 5 characters
+        console.log('Current explanation', sentenceExplanation)
+        if (sentenceExplanation.length < 5) {
+            return;
+        }
+        setSelectedSentences(prev => {
+            const newSelected = new Map(prev);
+            newSelected.set(index, 'declined');
+            return newSelected;
+        });
+        setShowPopover(null);
+    }, []);
+    
+    useEffect(()=> {
+        console.log("RECALCULATING SENTENCES");
         let sentenceIndex = 0; // Tracks the index of sentences
         const wordIndexToSentenceIndex = new Map<number, number>();
-        let totalSentenceCount = 0;
+        let totalSentenceCountTemp = 0;
         let wordIndexCounter = 0;
-        const sentences:string[] = []
-        const elementsToAdd:(ClickableSentenceTempProps|BreakElementProps)[] = recipeText.split('\n').flatMap((line, _) => {
+        const sentencesTemp:string[] = []
+        const elementsTemp = recipeText.split('\n').flatMap((line, _) => {
             if (line.trim().length === 0) {
                 return {} as BreakElementProps
             }
@@ -283,7 +314,7 @@ export const ImprovedRecipeDisplaySentenceScale: React.FC<ImprovedRecipeDisplayP
                     });
 
                     if(wordIndexes.length > 0){
-                        totalSentenceCount += 1;
+                        totalSentenceCountTemp += 1;
                     }
                 }
                 else {
@@ -314,14 +345,12 @@ export const ImprovedRecipeDisplaySentenceScale: React.FC<ImprovedRecipeDisplayP
                         }, 1000);
                     }
                 };
-                sentences.push(sentence)
+                sentencesTemp.push(sentence)
                 wordIndexCounter += wordsInSentence.length;
                 return (
                     {
                         sentence: sentence,
                         index: currentSentenceIndex,
-                        onAccept: handleAccept,
-                        onDecline: handleDecline,
                         toggleSelection: toggleSentenceSelection,
                         wordsIncluded: wordIndexes,
                     } as ClickableSentenceTempProps
@@ -331,11 +360,20 @@ export const ImprovedRecipeDisplaySentenceScale: React.FC<ImprovedRecipeDisplayP
             // Add a line break after each line
             return [...sentenceElements as ClickableSentenceTempProps[], {} as BreakElementProps];
         });
-        setElements(elementsToAdd);
+        setElements(elementsTemp);
         setWordToSentenceIndex(wordIndexToSentenceIndex);
-        setTotalSentenceCount(totalSentenceCount);
-        setSentences(sentences);
+        setTotalSentenceCount(totalSentenceCountTemp);
+        setSentences(sentencesTemp);
     }, [recipeText, annotations]);
+
+
+    const handleExplanationChange = useCallback((index:number, newExplanation:string) => {
+        setSentenceExplanations(prev => {
+          const newExplanations = new Map(prev);
+          newExplanations.set(index, newExplanation);
+          return newExplanations;
+        });
+      }, [setSentenceExplanations]);
 
     // Animation classes added to the elements
     const submitButtonClass = allWordsSelected ? "submit-button-enter" : "";
@@ -354,6 +392,10 @@ export const ImprovedRecipeDisplaySentenceScale: React.FC<ImprovedRecipeDisplayP
                                         showPopover={showPopover === element.index}
                                         sentenceStyle={getSentenceStyle(element.index)}
                                         setShowPopover={setShowPopover}
+                                        sentenceExplanation={sentenceExplanations.get(element.index) || ''}
+                                        handleExplanationChange={handleExplanationChange}
+                                        onAccept={handleAccept}
+                                        onDecline={handleDecline}
                                     />
                                 );
                             } else {

@@ -19,7 +19,7 @@ const App: React.FC<AppProps> = ({setDarkMode, setOnChildDataReceive, setOnChild
     const [appStep, setAppStep] = useState(0);
     const [activeTab, setActiveTab] = useState<string>('welcome'); // Set 'welcome' as initial state
     const [showWelcomeScreen, setShowWelcomeScreen] = useState<boolean>(true); // Set 'welcome' as initial state
-
+    console.log("App re-render")
     // Has tour been completed before?
     // Read tour from cookie
     const { setDoTour } = useContext(TourContext);

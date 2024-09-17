@@ -1,24 +1,94 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.tsx';
 import { ConfigProvider, theme } from 'antd';
 import {catppuccinColors} from '../catppuccin_scheme';
-import { TourProvider } from './components/index.ts';
+import { TourProvider } from './components';
 import { BackendResponse } from './types/BackendTypes';
 
-// const backendUrl = 'wss://gelex-backend-a3bfadfb8f41.herokuapp.com/ws/example'; 
-const backendUrl = 'ws://localhost:8000/ws/example';
+const backendUrl = 'wss://gelex-backend-a3bfadfb8f41.herokuapp.com/ws/example'; 
+// const backendUrl = 'ws://localhost:8000/ws/example';
+
+// Custom hook for WebSocket connection management
+const useWebSocket = (url: string) => {
+  const wsRef = useRef<WebSocket>(new WebSocket(url)); // Always initialized
+  const [isConnected, setIsConnected] = useState(false);
+
+  const childOnDataReceive = useRef<(data: BackendResponse) => void>(() => {});
+  const childOnErrorReceive = useRef<(error: Event) => void>(() => {});
+
+  const setChildOnDataReceive = (fn: (data: BackendResponse) => void) => {
+    childOnDataReceive.current = fn;
+  };
+
+  const setChildOnErrorReceive = (fn: (error: Event) => void) => {
+    childOnErrorReceive.current = fn;
+  };
+
+  useEffect(() => {
+    let shouldReconnect = true;
+
+    const connectWebSocket = () => {
+      const webSocket = wsRef.current;
+
+      webSocket.onopen = () => {
+        console.log("WebSocket connection established");
+        setIsConnected(true);  // Mark as connected
+      };
+
+      webSocket.onmessage = (event) => {
+        if (event.data === 'ping') {
+          console.log('Received ping message');
+          return;
+        }
+
+        const dataBackEnd = JSON.parse(event.data) as BackendResponse;
+        if (childOnDataReceive.current) {
+          childOnDataReceive.current(dataBackEnd);
+        }
+      };
+
+      webSocket.onerror = (error) => {
+        console.log("WebSocket error:", error);
+        if (childOnErrorReceive.current) {
+          childOnErrorReceive.current(error);
+        }
+      };
+
+      webSocket.onclose = (event) => {
+        console.log("WebSocket connection closed", event.code, event.reason, "Reconnecting...");
+        setIsConnected(false);  // Mark as disconnected
+        if (shouldReconnect) {
+          setTimeout(() => {
+            wsRef.current = new WebSocket(url); // Reinitialize the WebSocket object
+            connectWebSocket();
+          }, 3500);  // Reconnect after a delay
+        }
+      };
+    };
+
+    connectWebSocket();
+
+    return () => {
+      shouldReconnect = false;
+      if (wsRef.current) {
+        wsRef.current.close();
+      }
+    };
+  }, [url]);  // Depend on the WebSocket URL
+
+  return { ws: wsRef.current, isConnected, setChildOnDataReceive, setChildOnErrorReceive };
+};
+
 
 const Main = () => {
   const { defaultAlgorithm, darkAlgorithm } = theme;
   const cookie = document.cookie.split(';').find((cookie) => cookie.includes('darkMode'));
   const cookieDark = cookie ? cookie.split('=')[1] === 'true' : false;
   const [isDarkMode, setIsDarkMode] = useState(cookieDark);
-  const childOnDataReceive = useRef<(data: BackendResponse) => void>(() => {});
-  const childOnErrorReceive = useRef<(error: Event) => void>(() => {});
   // Set the cookie
   document.cookie = `darkMode=${isDarkMode}`;
-
+  console.log("MAIN MOUNTED")
   const themeColors = isDarkMode ? catppuccinColors.Mocha : catppuccinColors.Latte;
 
   // Does the cookie userId exist?
@@ -28,68 +98,8 @@ const Main = () => {
     document.cookie = `userId=${userId}`;
   }
 
-  const [ws, setWs] = useState<WebSocket | null>(null);
+  const { ws, setChildOnDataReceive, setChildOnErrorReceive } = useWebSocket(backendUrl);
 
-  const setChildOnDataReceive = (fn: (data: BackendResponse) => void) => {
-      childOnDataReceive.current = fn;
-  };
-
-  const setChildOnErrorReceive = (fn: (error: Event) => void) => {
-      childOnErrorReceive.current = fn;
-  }
-  
-  useEffect(() => {
-      let shouldReconnect = true;
-      const connectWebSocket = () => {
-          // console.log('Reconnecting WebSocket...')
-          const webSocket = new WebSocket(backendUrl);
-
-          webSocket.onopen = () => {
-              // console.log("WebSocket connection established");
-          };
-
-          webSocket.onmessage = (event) => {
-            // Check if the incoming message is just a ping message, if so, ignore it
-            if (event.data === 'ping') {
-              console.log('Received ping message')
-              return; // This is used to keep the connection alive
-            }
-            // Handle incoming messages
-            const dataBackEnd = JSON.parse(event.data) as BackendResponse;
-            if (childOnDataReceive.current) {
-                childOnDataReceive.current(dataBackEnd);
-            }     
-          };
-
-          webSocket.onerror = (error) => {
-            console.log("WebSocket error:", error);
-            if (childOnErrorReceive.current) {
-                childOnErrorReceive.current(error);
-            }
-          };
-
-          webSocket.onclose = (event) => {
-              console.log("WebSocket connection closed", event.code, event.reason, "Reconnecting...");
-              if (shouldReconnect) {
-                  // Reconnect after a delay
-                  setTimeout(() => {
-                      connectWebSocket();
-                  }, 1000); // Adjust the delay as needed
-              }
-          };
-          setWs(webSocket);
-      };
-
-      connectWebSocket();
-
-      // Cleanup function: runs when component unmounts
-      return () => {
-          shouldReconnect = false;
-          if (ws) {
-              ws.close();
-          }
-      };
-  }, []); // Empty dependency array to run only on component mount
 
   return (
     <React.StrictMode>

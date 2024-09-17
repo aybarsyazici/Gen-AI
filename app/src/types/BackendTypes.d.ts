@@ -13,13 +13,16 @@ export type BackendResponse = {
 }
 
 export type BackendUserResultDetails = {
-    selectedIndexes: Map<number, string>,
+    // selectedIndexes and providedExplanations are JSON objects
+    selectedIndexes: { [key: number]: string },
+    providedExplanations?: { [key: number]: string },
     originalRecipe?: string,
     improvedRecipe: string,
     timestamp: string,
     improvementLevel?: number,
     sentences?: Array<string>,
     mode: string,
+    variant: string,
 }
 
 export type BackendUserResult = {
