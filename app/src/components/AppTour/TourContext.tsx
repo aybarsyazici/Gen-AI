@@ -1,4 +1,11 @@
-import React, { createContext, useState, RefObject, Dispatch, SetStateAction, ReactNode } from 'react';
+import React, {
+  createContext,
+  useState,
+  RefObject,
+  Dispatch,
+  SetStateAction,
+  ReactNode,
+} from "react";
 
 export interface IPageRef {
   title: string;
@@ -21,8 +28,6 @@ interface ITourContext {
   tourStep: number;
   setTourStep: Dispatch<SetStateAction<number>>;
 }
-
-
 
 const defaultState: ITourContext = {
   tourOpen: false,
@@ -57,7 +62,20 @@ export const TourProvider: React.FC<TourProviderProps> = ({ children }) => {
   };
 
   return (
-    <TourContext.Provider value={{ doTour, setDoTour, tourOpen, setTourOpen, currentPage, setCurrentPage, startTour, pageRefs, tourStep, setTourStep }}>
+    <TourContext.Provider
+      value={{
+        doTour,
+        setDoTour,
+        tourOpen,
+        setTourOpen,
+        currentPage,
+        setCurrentPage,
+        startTour,
+        pageRefs,
+        tourStep,
+        setTourStep,
+      }}
+    >
       {children}
     </TourContext.Provider>
   );

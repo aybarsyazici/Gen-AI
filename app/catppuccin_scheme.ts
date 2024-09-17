@@ -26,7 +26,7 @@ export const catppuccinColors = {
     mantle: "#e6e9ef",
     crust: "#dce0ea",
     border: "#b4befe", // Chosen for border
-    fill: "#fab387" // Chosen for fill
+    fill: "#fab387", // Chosen for fill
   },
   Mocha: {
     rosewater: "#f5e0dc",
@@ -55,6 +55,6 @@ export const catppuccinColors = {
     mantle: "#181825",
     crust: "#11111b",
     border: "#585b70", // Chosen for border
-    fill: "#94e2d5" // Chosen for fill
-  }
+    fill: "#94e2d5", // Chosen for fill
+  },
 };
