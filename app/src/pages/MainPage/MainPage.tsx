@@ -1,4 +1,4 @@
-import { Card, Col, Empty, Popover, Row, Space, Typography } from "antd"
+import { Card, Col, Empty, Popover, Row, Space } from "antd"
 import { Guider, IPageRef, UserHighlightWeExplain, UserHighlightWeExplain_word, RecipeForm, TourContext, UserHighlightUserExplain, UserHighlightUserExplain_word } from "../../components"
 import { useContext, useEffect, useRef, useState } from "react";
 import { BackendInput, ImprovedRecipe, BackendResponse, BackendUserResult, BackendUserResultDetails } from "../../types";
@@ -33,9 +33,9 @@ export const MainPage: React.FC<MainPageProps> = ({api, setActivePage, currentMo
     const [revealExtraWord, setRevealExtraWord] = useState<() => void>(() => () => {});
     const [revealAllWords, setRevealAllWords] = useState<() => void>(() => () => {});
     // Does the cookie savedImprovedRecipe exist? (for debugging)
-    const savedImprovedRecipe = document.cookie.split(';').find((cookie) => cookie.includes('savedImprovedRecipe'))?.split('=')[1];
+    // const savedImprovedRecipe = document.cookie.split(';').find((cookie) => cookie.includes('savedImprovedRecipe'))?.split('=')[1];
     // If it exists parse the JSON
-    const parsedImprovedRecipe = savedImprovedRecipe ? JSON.parse(savedImprovedRecipe) as ImprovedRecipe : undefined;
+    // const parsedImprovedRecipe = savedImprovedRecipe ? JSON.parse(savedImprovedRecipe) as ImprovedRecipe : undefined;
     const [improvedRecipe, setImprovedRecipe] = useState<ImprovedRecipe|undefined>();
     const [improvedRecipeLoading, setimprovedRecipeLoading] = useState(false);
     // we will be displaying a different version of the app depending on the userId
