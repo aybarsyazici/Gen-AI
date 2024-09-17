@@ -46,7 +46,6 @@ const ClickableSentence: React.FC<ClickableSentenceProps> = React.memo(
     setShowPopover,
     sentenceStyle,
   }) => {
-    console.log("Rendering sentence", index);
     return (
       <Popover
         content={
@@ -206,13 +205,10 @@ export const ImprovedRecipeDisplaySentenceScale: React.FC<
         wordToSentenceIndex.get(index),
       );
       const indicesInSelectedWords = Array.from(selectedSentences.keys());
-      console.log("Indices in annotations", indicesInAnnotations);
-      console.log("Indices in selected words", selectedSentences);
       const indicesNotSelected = indicesInAnnotations.filter(
         (index) =>
           index !== undefined && !indicesInSelectedWords.includes(index),
       );
-      console.log("Indices not selected", indicesNotSelected);
       // console.log('Indices in annotations', indicesInAnnotations)
       // console.log('Indices in selected words', indicesInSelectedWords)
       // console.log('Indices not selected', indicesNotSelected)

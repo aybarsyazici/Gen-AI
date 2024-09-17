@@ -225,7 +225,6 @@ export const ImprovedRecipeDisplayWordScale: React.FC<
   );
 
   const handleAccept = (index: number) => {
-    console.log("Accepting word: ", index);
     setSelectedWords(new Map(selectedWords.set(index, "accepted")));
     setShowPopover(null);
   };
@@ -339,7 +338,6 @@ export const ImprovedRecipeDisplayWordScale: React.FC<
         } as LineBreakProps,
       ];
     });
-    console.log("toReturn: ", toReturn);
     return toReturn;
   }, [recipeText]);
 

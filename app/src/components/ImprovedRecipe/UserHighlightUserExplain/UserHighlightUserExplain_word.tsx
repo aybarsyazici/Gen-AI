@@ -66,15 +66,6 @@ const ClickableWord: React.FC<ClickableWordProps> = React.memo(
     popRef,
     spanRef,
   }) => {
-    console.log(
-      "word rerender: ",
-      currentWordIndex,
-      "& Got Refs: ",
-      likeButtonRef,
-      dislikeButtonRef,
-      popRef,
-      spanRef,
-    );
     return (
       <Popover
         content={
@@ -188,7 +179,6 @@ export const ImprovedRecipeDisplayWordScale: React.FC<
         "To identify the changes we click on words(or sentences) that we think have been changed.",
       target: refMap["first-word"],
       onNext: () => {
-        console.log("Trying to click first word", refMap, refMap["first-word"]);
         refMap["first-word"]?.current?.click();
       },
       preventClose: true,
@@ -418,7 +408,6 @@ export const ImprovedRecipeDisplayWordScale: React.FC<
         } as LineBreakProps,
       ];
     });
-    console.log("toReturn: ", toReturn);
     return toReturn;
   }, [recipeText]);
 

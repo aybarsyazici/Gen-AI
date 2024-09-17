@@ -99,7 +99,6 @@ const Main = () => {
   const [isDarkMode, setIsDarkMode] = useState(cookieDark);
   // Set the cookie
   document.cookie = `darkMode=${isDarkMode}`;
-  console.log("MAIN MOUNTED");
   const themeColors = isDarkMode
     ? catppuccinColors.Mocha
     : catppuccinColors.Latte;

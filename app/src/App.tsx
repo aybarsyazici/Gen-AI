@@ -6,6 +6,7 @@ import { MainPage, ResultPage } from "./pages";
 import WelcomeScreen from "./pages/WelcomeScreen/WelcomeScreen";
 import { AppTour, TourContext } from "./components";
 import { BackendResponse } from "./types";
+import { AppVersionProvider } from "./helpers";
 
 type AppProps = {
   setDarkMode: (isDarkMode: boolean) => void;
@@ -23,7 +24,6 @@ const App: React.FC<AppProps> = ({
   const [appStep, setAppStep] = useState(0);
   const [activeTab, setActiveTab] = useState<string>("welcome"); // Set 'welcome' as initial state
   const [showWelcomeScreen, setShowWelcomeScreen] = useState<boolean>(true); // Set 'welcome' as initial state
-  console.log("App re-render");
   // Has tour been completed before?
   // Read tour from cookie
   const { setDoTour } = useContext(TourContext);
@@ -67,7 +67,7 @@ const App: React.FC<AppProps> = ({
   };
 
   return (
-    <>
+    <AppVersionProvider>
       <div className="hover-target-parent">
         <div className="hover-target" onMouseOver={handleHoverOverTop} />
       </div>
@@ -109,7 +109,7 @@ const App: React.FC<AppProps> = ({
         </Content>
       </Layout>
       <AppTour />
-    </>
+    </AppVersionProvider>
   );
 };
 

@@ -266,7 +266,6 @@ export const ImprovedRecipeDisplaySentenceScale: React.FC<
   const handleAccept = useCallback(
     (index: number, sentenceExplanation: string) => {
       // Check whether the explanation is longer than 5 characters
-      console.log("Current explanation", sentenceExplanation);
       if (sentenceExplanation.length < 5) {
         return;
       }
@@ -281,7 +280,6 @@ export const ImprovedRecipeDisplaySentenceScale: React.FC<
   );
 
   useEffect(() => {
-    console.log("RECALCULATING SENTENCES");
     let sentenceIndex = 0; // Tracks the index of sentences
     const wordIndexToSentenceIndex = new Map<number, number>();
     let totalSentenceCountTemp = 0;

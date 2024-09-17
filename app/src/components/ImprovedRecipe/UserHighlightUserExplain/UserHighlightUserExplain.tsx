@@ -49,7 +49,6 @@ const ClickableSentence: React.FC<ClickableSentenceProps> = React.memo(
     handleExplanationChange,
     sentenceStyle,
   }) => {
-    console.log("Rendering sentence", index);
     return (
       <Popover
         content={
@@ -223,13 +222,10 @@ export const ImprovedRecipeDisplaySentenceScale: React.FC<
         wordToSentenceIndex.get(index),
       );
       const indicesInSelectedWords = Array.from(selectedSentences.keys());
-      console.log("Indices in annotations", indicesInAnnotations);
-      console.log("Indices in selected words", selectedSentences);
       const indicesNotSelected = indicesInAnnotations.filter(
         (index) =>
           index !== undefined && !indicesInSelectedWords.includes(index),
       );
-      console.log("Indices not selected", indicesNotSelected);
       // console.log('Indices in annotations', indicesInAnnotations)
       // console.log('Indices in selected words', indicesInSelectedWords)
       // console.log('Indices not selected', indicesNotSelected)
@@ -327,7 +323,6 @@ export const ImprovedRecipeDisplaySentenceScale: React.FC<
   const handleAccept = useCallback(
     (index: number, sentenceExplanation: string) => {
       // Check whether the explanation is longer than 5 characters
-      console.log("Current explanation", sentenceExplanation);
       if (sentenceExplanation.length < 5) {
         return;
       }
@@ -345,7 +340,6 @@ export const ImprovedRecipeDisplaySentenceScale: React.FC<
   const handleDecline = useCallback(
     (index: number, sentenceExplanation: string) => {
       // Check whether the explanation is longer than 5 characters
-      console.log("Current explanation", sentenceExplanation);
       if (sentenceExplanation.length < 5) {
         return;
       }
@@ -360,7 +354,6 @@ export const ImprovedRecipeDisplaySentenceScale: React.FC<
   );
 
   useEffect(() => {
-    console.log("RECALCULATING SENTENCES");
     let sentenceIndex = 0; // Tracks the index of sentences
     const wordIndexToSentenceIndex = new Map<number, number>();
     let totalSentenceCountTemp = 0;

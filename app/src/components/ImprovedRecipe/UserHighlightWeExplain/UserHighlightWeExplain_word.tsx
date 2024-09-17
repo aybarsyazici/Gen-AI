@@ -63,12 +63,6 @@ const ClickableWord: React.FC<ClickableWordProps> = React.memo(
     popRef,
     spanRef,
   }) => {
-    console.log(
-      "word rerender: ",
-      currentWordIndex,
-      "& Got style: ",
-      wordStyle,
-    );
     return (
       <Popover
         content={
@@ -387,7 +381,6 @@ export const ImprovedRecipeDisplayWordScale: React.FC<
         } as LineBreakProps,
       ];
     });
-    console.log("toReturn: ", toReturn);
     return toReturn;
   }, [recipeText]);
 

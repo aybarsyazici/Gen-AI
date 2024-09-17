@@ -1,16 +1,18 @@
 import React, { useContext, useEffect, useMemo, useRef } from "react";
-import { List, Button, Typography } from "antd";
+import { List, Button, Typography, Modal, Input } from "antd";
 import {
   ArrowUpOutlined,
   CoffeeOutlined,
   EditOutlined,
   InfoCircleOutlined,
+  PoweroffOutlined,
   QuestionCircleOutlined,
   SettingOutlined,
 } from "@ant-design/icons";
 import "./WelcomeScreen.css";
 import { IPageRef, TourContext } from "../../components";
 import { NotificationInstance } from "antd/es/notification/interface";
+import { useAppVersionContext } from "../../helpers";
 
 type WelcomeScreenProps = {
   onMenuSelect: (menu: string) => void;
@@ -30,6 +32,14 @@ const menuItems = [
   { key: "toggle", label: "Toggle Dark Mode", icon: <SettingOutlined /> },
 ];
 
+// create a dictionary with app passwords
+const passwordDefinitions = {
+  appv1xhyu: 0,
+  appv2bpog: 1,
+  appv3hiec: 2,
+  appv4oume: 3,
+};
+
 const { Text } = Typography;
 
 const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
@@ -44,6 +54,41 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   appStep,
 }) => {
   const switchText = currentMode === "word" ? "sentence" : "word";
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const [modalText, setModalText] = React.useState("");
+  const showModal = () => {
+    setIsModalOpen(true);
+  };
+  const { changeAppVersion } = useAppVersionContext();
+  const handleOk = () => {
+    if (modalText in passwordDefinitions) {
+      console.log(
+        //@ts-ignore
+        `Switching to appVersion=${passwordDefinitions[modalText]} mode`,
+      );
+      //@ts-ignore
+      changeAppVersion(passwordDefinitions[modalText]);
+      api.success({
+        message: "Success",
+        description:
+          //@ts-ignore
+          "App version changed to " + passwordDefinitions[modalText].toString(),
+        placement: "top",
+      });
+      setIsModalOpen(false);
+    } else {
+      console.log("Invalid version");
+      api.error({
+        message: "Error",
+        description: "Invalid app password...",
+        placement: "top",
+      });
+    }
+  };
+
+  const handleCancel = () => {
+    setIsModalOpen(false);
+  };
   // Add one more element to the menuItems array
   const myMenuItems = [
     ...menuItems,
@@ -52,6 +97,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       label: `Switch to ${switchText} mode`,
       icon: <EditOutlined />,
     },
+    { key: "modal", label: "Change app version", icon: <PoweroffOutlined /> },
     { key: "tour", label: "Restart Tour", icon: <QuestionCircleOutlined /> },
   ];
   const { startTour, doTour, setDoTour, currentPage, setCurrentPage } =
@@ -76,6 +122,8 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       setCurrentMode && setCurrentMode("word");
       setDoTour(true);
       setCurrentPage(-1);
+    } else if (key === "modal") {
+      showModal();
     } else {
       if (key !== "app" && doTour) return;
       onMenuSelect(key);
@@ -90,6 +138,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   refMap["toggle"] = useRef<HTMLDivElement>(null);
   refMap["sentence-mode"] = useRef<HTMLDivElement>(null);
   refMap["tour"] = useRef<HTMLDivElement>(null);
+  refMap["modal"] = useRef<HTMLDivElement>(null);
   refMap["empty"] = useRef<HTMLDivElement>(null);
 
   const steps = useMemo(() => {
@@ -151,6 +200,16 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       },
     });
     refs.push({
+      title: "Change app version",
+      content:
+        "We have several variants of the app, you can switch between them here!(You require the password for each version)",
+      target: refMap.modal,
+      onClose: () => {
+        setCurrentPage(1);
+        refMap.app.current?.click();
+      },
+    });
+    refs.push({
       title: "Restart Tour",
       content: "You can always restart the tour by clicking here!",
       target: refMap.tour,
@@ -175,6 +234,18 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       className={`welcome-screen ${className}`}
       data-theme={isDarkMode ? "dark" : "light"}
     >
+      <Modal
+        title="Change app version"
+        open={isModalOpen}
+        onOk={handleOk}
+        onCancel={handleCancel}
+      >
+        <Input
+          placeholder="Write the password of the app version you want to switch to"
+          value={modalText}
+          onChange={(e) => setModalText(e.target.value)}
+        />
+      </Modal>
       <Text className="menu-info-text">
         <ArrowUpOutlined /> PS: (hover here to resummon me) <ArrowUpOutlined />
       </Text>

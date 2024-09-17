@@ -1,4 +1,4 @@
-import { Card, Col, Empty, Popover, Row, Space } from "antd";
+import { Card, Col, Empty, Popover, Row, Space, FloatButton } from "antd";
 import {
   Guider,
   IPageRef,
@@ -22,7 +22,12 @@ import {
   BackendUserResultDetails,
 } from "../../types";
 import { NotificationInstance } from "antd/es/notification/interface";
-import { BulbOutlined, QuestionOutlined } from "@ant-design/icons";
+import {
+  BulbOutlined,
+  ForkOutlined,
+  QuestionOutlined,
+} from "@ant-design/icons";
+import { useAppVersionContext } from "../../helpers";
 
 type MainPageProps = {
   api: NotificationInstance;
@@ -69,27 +74,21 @@ export const MainPage: React.FC<MainPageProps> = ({
     ImprovedRecipe | undefined
   >();
   const [improvedRecipeLoading, setimprovedRecipeLoading] = useState(false);
-  // we will be displaying a different version of the app depending on the userId
-  // So we get the userId, hash it then do modulo4 to get the version
   // Versions are as follows:
   // 0: User highlight & User explain
   // 1: User highlight & AI explain
   // 2: AI highlight & User explain
   // 3: AI highlight & AI explain
-  const appVersion =
-    parseInt(
-      document.cookie
-        .split(";")
-        .find((cookie) => cookie.includes("userId"))
-        ?.split("=")[1] || "0",
-      10,
-    ) % 4;
+  // Grab the appVersion cookie(if it exists) and decode it with atob
+  // If it doesn't exist, set the appVersion to 0 and set the cookie by encoding it with btoa
+  const { appVersion } = useAppVersionContext();
 
   // Ref Map
   const refMap: Record<string, React.RefObject<HTMLDivElement>> = {};
   refMap["improved-recipe-wrapper"] = useRef<HTMLDivElement>(null);
   refMap["reveal-next-change"] = useRef<HTMLDivElement>(null);
   refMap["reveal-all-changes"] = useRef<HTMLDivElement>(null);
+  refMap["current-app-version"] = useRef<HTMLDivElement>(null);
 
   const [refState, _] = useState<IPageRef[]>([
     {
@@ -99,6 +98,14 @@ export const MainPage: React.FC<MainPageProps> = ({
           ? `You will be asked to find out the changes either in word-scale or sentence-scale(Remember you can always the scale from the menu!)`
           : "The changes will already be highlighted for you!",
       target: refMap["improved-recipe-wrapper"],
+      onClose: () => {
+        setCurrentPage(4);
+      },
+    },
+    {
+      title: "Check the app version!",
+      content: `You can check the current variant/version of the app you are using, by clicking here. It should be right now ${appVersion}`,
+      target: refMap["current-app-version"],
       onClose: () => {
         setCurrentPage(4);
       },
@@ -423,6 +430,13 @@ export const MainPage: React.FC<MainPageProps> = ({
           )}
         </Col>
       </Row>
+      <FloatButton
+        icon={<ForkOutlined />}
+        type="primary"
+        tooltip={`current app version ${appVersion}`}
+        /*@ts-ignore*/
+        ref={refMap["current-app-version"]}
+      />
     </Space>
   );
 };
