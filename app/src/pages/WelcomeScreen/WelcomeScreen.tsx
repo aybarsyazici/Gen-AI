@@ -13,6 +13,7 @@ import "./WelcomeScreen.css";
 import { IPageRef, TourContext } from "../../components";
 import { NotificationInstance } from "antd/es/notification/interface";
 import { useAppVersionContext } from "../../helpers";
+import { useTranslation } from "react-i18next";
 
 type WelcomeScreenProps = {
   onMenuSelect: (menu: string) => void;
@@ -56,6 +57,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   const switchText = currentMode === "word" ? "sentence" : "word";
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [modalText, setModalText] = React.useState("");
+  const { t } = useTranslation();
   const showModal = () => {
     setIsModalOpen(true);
   };
@@ -251,7 +253,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       </Text>
       <span ref={refMap.welcome as React.RefObject<HTMLDivElement>}>
         <List
-          header={<div>Welcome to Gen-AI Kitchen!</div>}
+          header={<div>{t("WelcomeScreen.WelcomeMessage")}</div>}
           dataSource={myMenuItems}
           className="menu-list"
           renderItem={(item) => (

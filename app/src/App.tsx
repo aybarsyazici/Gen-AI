@@ -7,6 +7,9 @@ import WelcomeScreen from "./pages/WelcomeScreen/WelcomeScreen";
 import { AppTour, TourContext } from "./components";
 import { BackendResponse } from "./types";
 import { AppVersionProvider } from "./helpers";
+import i18n from "i18next";
+import { initReactI18next } from "react-i18next";
+import { resources } from "../i18n.ts"
 
 type AppProps = {
   setDarkMode: (isDarkMode: boolean) => void;
@@ -14,6 +17,17 @@ type AppProps = {
   setOnChildErrorReceive: (fn: (error: Event) => void) => void;
   ws: WebSocket | null;
 };
+
+i18n
+  .use(initReactI18next) // passes i18n down to react-i18next
+  .init({
+    resources,
+    lng: "en",
+
+    interpolation: {
+      escapeValue: false // react already safes from xss
+    }
+  });
 
 const App: React.FC<AppProps> = ({
   setDarkMode,
