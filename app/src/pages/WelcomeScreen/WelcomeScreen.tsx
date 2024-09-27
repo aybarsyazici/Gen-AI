@@ -74,7 +74,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
         message: "Success",
         description:
           //@ts-ignore
-          "App version changed to " + passwordDefinitions[modalText].toString(),
+          {t("AppVersion.Change")} + passwordDefinitions[modalText].toString(),
         placement: "top",
       });
       setIsModalOpen(false);
@@ -82,7 +82,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       console.log("Invalid version");
       api.error({
         message: "Error",
-        description: "Invalid app password...",
+        description: {t("AppVersion.Invalid")}
         placement: "top",
       });
     }
@@ -99,8 +99,8 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       label: `Switch to ${switchText} mode`,
       icon: <EditOutlined />,
     },
-    { key: "modal", label: "Change app version", icon: <PoweroffOutlined /> },
-    { key: "tour", label: "Restart Tour", icon: <QuestionCircleOutlined /> },
+    { key: "modal", label:  {t("Tour.Change")}, icon: <PoweroffOutlined /> },
+    { key: "tour", label: {t("Tour.Restart")}, icon: <QuestionCircleOutlined /> },
   ];
   const { startTour, doTour, setDoTour, currentPage, setCurrentPage } =
     useContext(TourContext);
@@ -116,7 +116,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
         api.warning({
           message: "Warning",
           description:
-            "You are currently in the middle of a recipe. Please finish it before restarting the tour.",
+          {t("Tour.Warning")},
           placement: "top",
         });
         return;
@@ -146,9 +146,8 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   const steps = useMemo(() => {
     const refs: IPageRef[] = [];
     refs.push({
-      title: "Welcome!",
-      content: `Welcome to Gen-AI Kitchen! This was conceived as a semester project at ML4ED Lab at EPFL.
-      Since this is your first time visiting (or re-requesting a tour), let us show you around!`,
+      title: {t("Tour.WelcomeTitle")},
+      content: {t("Tour.WelcomeContent")},
       target: refMap.empty,
       onClose: () => {
         refMap.app.current?.click();
@@ -156,8 +155,8 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       },
     });
     refs.push({
-      title: "Welcome screen!",
-      content: `This is the welcome screen. This is what you'll be using to navigate around the app.`,
+      title: {t("Tour.WelcomeScreenTitle")},
+      content: {t("Tour.WelcomeScreenContent")},
       target: refMap.welcome,
       onClose: () => {
         refMap.app.current?.click();
@@ -165,8 +164,8 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       },
     });
     refs.push({
-      title: "Start Cooking",
-      content: "Click here to go to app and start cooking!",
+      title: {t("Tour.StartCookingTitle")},
+      content: {t("Tour.StartCookingContent")},
       target: refMap.app,
       onClose: () => {
         refMap.app.current?.click();
@@ -174,8 +173,8 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       },
     });
     refs.push({
-      title: "About Us",
-      content: "Click here to learn more about us!",
+      title: {t("Tour.AboutUsTitle")},
+      content: {t("Tour.AboutUsContent")},
       target: refMap.about,
       onClose: () => {
         refMap.app.current?.click();
@@ -183,8 +182,8 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       },
     });
     refs.push({
-      title: "Toggle Dark Mode",
-      content: "Click here to toggle dark mode!",
+      title: {t("Tour.ToggleDarkModeTitle")},
+      content: {t("Tour.ToggleDarkModeContent")},
       target: refMap.toggle,
       onClose: () => {
         refMap.app.current?.click();
@@ -192,9 +191,8 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       },
     });
     refs.push({
-      title: "Switch to sentence mode",
-      content:
-        "Click here to mark the changes in sentence scale! Don't worry, this will be explained more in detail later!",
+      title: {t("Tour.SwitchToSentenceModeTitle")},
+      content: {t("Tour.SwitchToSentenceModeContent")},
       target: refMap["sentence-mode"],
       onClose: () => {
         setCurrentPage(1);
@@ -202,9 +200,8 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       },
     });
     refs.push({
-      title: "Change app version",
-      content:
-        "We have several variants of the app, you can switch between them here!(You require the password for each version)",
+      title: {t("Tour.ChangeAppVersionTitle")},
+      content: {t("Tour.ChangeAppVersionContent")},
       target: refMap.modal,
       onClose: () => {
         setCurrentPage(1);
@@ -212,8 +209,8 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       },
     });
     refs.push({
-      title: "Restart Tour",
-      content: "You can always restart the tour by clicking here!",
+      title: {t("Tour.RestartTourTitle")},
+      content: {t("Tour.RestartTourContent")},
       target: refMap.tour,
       onClose: () => {
         setCurrentPage(1);
@@ -222,6 +219,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
     });
     return refs;
   }, [refMap, setCurrentPage]);
+
 
   useEffect(() => {
     if (!doTour) return;
@@ -237,19 +235,19 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       data-theme={isDarkMode ? "dark" : "light"}
     >
       <Modal
-        title="Change app version"
+        title={t("WelcomeScreen.ChangeAppMessage")}
         open={isModalOpen}
         onOk={handleOk}
         onCancel={handleCancel}
       >
         <Input
-          placeholder="Write the password of the app version you want to switch to"
+          placeholder={t("WelcomeScreen.PasswordMessage")}
           value={modalText}
           onChange={(e) => setModalText(e.target.value)}
         />
       </Modal>
       <Text className="menu-info-text">
-        <ArrowUpOutlined /> PS: (hover here to resummon me) <ArrowUpOutlined />
+        <ArrowUpOutlined /> {t("WelcomeScreen.HoverMessage")}  <ArrowUpOutlined />
       </Text>
       <span ref={refMap.welcome as React.RefObject<HTMLDivElement>}>
         <List
