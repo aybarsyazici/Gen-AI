@@ -54,6 +54,10 @@
     transform: scale(1.1);
 }
 
+.explanation-popover{
+  width: 33%;
+}
+
 /* ImprovedRecipeDisplay.css */
 
 /* ... existing styles ... */

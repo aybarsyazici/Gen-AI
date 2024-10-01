@@ -6,8 +6,8 @@ import { catppuccinColors } from "../catppuccin_scheme";
 import { TourProvider } from "./components";
 import { BackendResponse } from "./types/BackendTypes";
 
-const backendUrl = "wss://gelex-backend-a3bfadfb8f41.herokuapp.com/ws/example";
-// const backendUrl = 'ws://localhost:8000/ws/example';
+// const backendUrl = "wss://gelex-backend-a3bfadfb8f41.herokuapp.com/ws/example";
+const backendUrl = 'ws://localhost:8000/ws/example';
 
 // Custom hook for WebSocket connection management
 const useWebSocket = (url: string) => {
