@@ -359,10 +359,10 @@ export const ImprovedRecipeDisplayWordScale: React.FC<
                 lineIndex,
                 wordIndex,
               } = word as ClickableWordPropsTemp;
-
+              const explanationTemp = improvedRecipe.explanations !== undefined && currentWord in improvedRecipe.explanations ? improvedRecipe.explanations[currentWord] : "No explanation found";
               return (
                 <ClickableWord
-                  wordExplanation={`Explanation for ${currentWord}`}
+                  wordExplanation={explanationTemp}
                   currentWordIndex={wordIndex}
                   handleAccept={handleAccept}
                   showPopover={showPopover === wordIndex}

@@ -9,6 +9,7 @@ export type BackendResponse = {
   annotations: { [key: string]: Array<[string, number]> };
   ing_seperated: string;
   example_recipe: string;
+  explanations_per_word: { [key: string]: string };
 };
 
 export type BackendUserResultDetails = {

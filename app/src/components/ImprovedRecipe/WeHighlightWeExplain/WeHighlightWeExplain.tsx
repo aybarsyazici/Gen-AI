@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Form, Popover, Button, Typography, theme } from "antd";
+import { Form, Popover, Button, Typography, theme, Divider } from "antd";
 import "./ImprovedRecipeDisplay.css";
 import { BackendUserResultDetails, ImprovedRecipe } from "../../../types";
 import { CheckCircleOutlined } from "@ant-design/icons";
@@ -18,7 +18,7 @@ interface ClickableSentenceProps {
   showPopover: boolean;
   setShowPopover: (index: number | null) => void;
   getSentenceStyle?: (index: number) => React.CSSProperties;
-  wordsIncluded: { word: string; wordIndex: number }[];
+  wordsIncluded: { word: string; wordIndex: number; origWord: string }[];
   sentenceStyle?: React.CSSProperties;
   sentenceExplanation: string;
 }
@@ -42,11 +42,44 @@ const ClickableSentence: React.FC<ClickableSentenceProps> = React.memo(
     sentenceExplanation,
     sentenceStyle,
   }) => {
+    console.log(`Got sentence explanation ${sentenceExplanation}`);
+    // Split at \n\n and add a divider between each explanation
+    const explanationParts = sentenceExplanation
+      .split("\n\n")
+      .filter((part) => part !== "");
+    console.log(
+      `Split explanation into ${explanationParts.length} parts`,
+      explanationParts
+    );
     return (
       <Popover
+        className="explanation-popover"
+        style={{ width: "33%" }}
         content={
           <div>
-            <Typography.Paragraph>{sentenceExplanation}</Typography.Paragraph>
+            {explanationParts.map((part, tempIndex) => {
+              if (tempIndex === explanationParts.length - 1) {
+                return (
+                  <Typography.Paragraph
+                    key={`explanation-${tempIndex}-${index}`}
+                  >
+                    {part}
+                  </Typography.Paragraph>
+                );
+              } else {
+                return (
+                  <>
+                    <Typography.Paragraph
+                      key={`explanation-${tempIndex}-${index}`}
+                    >
+                      {part}
+                    </Typography.Paragraph>
+                    <Divider key={`divider-${tempIndex}-${index}`}/>
+                  </>
+                );
+              }
+            })}
+
             <div className="like-dislike-container">
               <Button className="like-button" onClick={() => onAccept(index)}>
                 <CheckCircleOutlined />
@@ -75,7 +108,7 @@ const ClickableSentence: React.FC<ClickableSentenceProps> = React.memo(
       JSON.stringify(prevProps.sentenceStyle) ===
         JSON.stringify(nextProps.sentenceStyle)
     );
-  },
+  }
 );
 
 export const ImprovedRecipeDisplaySentenceScale: React.FC<
@@ -176,7 +209,7 @@ export const ImprovedRecipeDisplaySentenceScale: React.FC<
         }
       }
     },
-    [selectedSentences, isDarkMode],
+    [selectedSentences, isDarkMode]
   );
 
   useEffect(() => {
@@ -187,7 +220,7 @@ export const ImprovedRecipeDisplaySentenceScale: React.FC<
       });
     });
     const indicesInAnnotations = Array.from(indices).map((index) =>
-      wordToSentenceIndex.get(index),
+      wordToSentenceIndex.get(index)
     );
     const newSelectedMap = new Map(selectedSentences);
     indicesInAnnotations.forEach((randomIndex) => {
@@ -202,10 +235,10 @@ export const ImprovedRecipeDisplaySentenceScale: React.FC<
   useEffect(() => {
     // Count the current accepted + declined word count
     const acceptedSentences = Array.from(selectedSentences.values()).filter(
-      (status) => status === "accepted",
+      (status) => status === "accepted"
     ).length;
     const declinedSentences = Array.from(selectedSentences.values()).filter(
-      (status) => status === "declined",
+      (status) => status === "declined"
     ).length;
     const totalWords = acceptedSentences + declinedSentences;
     if (
@@ -280,15 +313,16 @@ export const ImprovedRecipeDisplaySentenceScale: React.FC<
         const wordAnnotations = Object.entries(annotations).filter(
           ([word, _]) => {
             return wordsInSentence.includes(word);
-          },
+          }
         );
         let wordIndexes: { word: string; wordIndex: number }[];
         if (wordAnnotations !== undefined) {
           wordIndexes = wordAnnotations
-            .map(([_, wordAnnotations]) => {
+            .map(([origWord, wordAnnotations]) => {
               return wordAnnotations.map(([word, wordIndex]) => ({
                 word: word,
                 wordIndex: wordIndex,
+                origWord: origWord,
               }));
             })
             .flat();
@@ -366,6 +400,15 @@ export const ImprovedRecipeDisplaySentenceScale: React.FC<
         <div style={{ whiteSpace: "pre-wrap", userSelect: "text" }}>
           {elements.map((element, index) => {
             if ("sentence" in element) {
+              let currentSentenceExplanation = "";
+              // Iterate over the wordIndexes and add each of their explanations
+              element.wordsIncluded.forEach(({ origWord }) => {
+                const explanation = improvedRecipe.explanations[origWord];
+                if (explanation) {
+                  currentSentenceExplanation +=
+                    origWord + ": " + explanation + "\n\n";
+                }
+              });
               return (
                 <ClickableSentence
                   key={`sentence-${index}`}
@@ -373,7 +416,7 @@ export const ImprovedRecipeDisplaySentenceScale: React.FC<
                   showPopover={showPopover === element.index}
                   sentenceStyle={getSentenceStyle(element.index)}
                   setShowPopover={setShowPopover}
-                  sentenceExplanation={`Explanation for ${element.sentence}`}
+                  sentenceExplanation={currentSentenceExplanation}
                   onAccept={handleAccept}
                 />
               );

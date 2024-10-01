@@ -137,10 +137,12 @@ export const MainPage: React.FC<MainPageProps> = ({
   useEffect(() => {
     // Define the function that the parent will call
     const handleData = (data: BackendResponse) => {
+      console.log("WebSocket data received:", data);
       setImprovementLevel(improvementLevel);
       setImprovedRecipe({
         recipeText: data.example_recipe,
         annotations: data.annotations,
+        explanations: data.explanations_per_word,
       });
       // Save the improved recipe to cookie (for debugging)
       document.cookie = `savedImprovedRecipe=${JSON.stringify({
@@ -195,6 +197,11 @@ export const MainPage: React.FC<MainPageProps> = ({
           an: [["an", 2]],
           words: [["word", 9]],
         },
+        explanations: {
+          This: "This is an example explanation.",
+          an: "This is an example explanation.",
+          words: "This is an example explanation.",
+        },
       });
       setCurrentPage(3);
       setTimeout(() => startTour(refState), 1);
@@ -210,7 +217,7 @@ export const MainPage: React.FC<MainPageProps> = ({
       });
       return;
     }
-    const rule_counts = [1, 3, 5, 10, 30];
+    const rule_counts = [3, 5, 10, 20, 30];
     // console.log(`Submitting hit with recipe: ${recipe} and improvementLevel: ${improvementLevel}, num_rules: ${rule_counts[improvementLevel]}`)
     setimprovedRecipeLoading(true);
     setStep(1);
