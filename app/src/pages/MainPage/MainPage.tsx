@@ -28,6 +28,7 @@ import {
   QuestionOutlined,
 } from "@ant-design/icons";
 import { useAppVersionContext } from "../../helpers";
+import { useTranslation } from "react-i18next";
 
 type MainPageProps = {
   api: NotificationInstance;
@@ -51,7 +52,7 @@ export const MainPage: React.FC<MainPageProps> = ({
 }) => {
   const { doTour, setCurrentPage, startTour, setDoTour } =
     useContext(TourContext);
-
+  const { t } = useTranslation();
   const [currentStep, setStep] = useState(0);
 
   useEffect(() => {
@@ -92,19 +93,19 @@ export const MainPage: React.FC<MainPageProps> = ({
 
   const [refState, _] = useState<IPageRef[]>([
     {
-      title: {t("MainPage.TitleImproveRecipe")},
+      title: t("MainPage.TitleImproveRecipe"),
       content:
         appVersion < 2
-          ? {t("MainPage.ContentWordScale")}
-          : {t("MainPage.ContentHighlightedChanges")},
+          ? t("MainPage.ContentWordScale")
+          : t("MainPage.ContentHighlightedChanges"),
       target: refMap["improved-recipe-wrapper"],
       onClose: () => {
         setCurrentPage(4);
       },
     },
     {
-      title: {t("MainPage.TitleCheckAppVersion")},
-      content: {t("MainPage.ContentCheckAppVersion")} + { appVersion },
+      title: t("MainPage.TitleCheckAppVersion"),
+      content: t("MainPage.ContentCheckAppVersion") + appVersion ,
       target: refMap["current-app-version"],
       onClose: () => {
         setCurrentPage(4);
@@ -113,16 +114,16 @@ export const MainPage: React.FC<MainPageProps> = ({
     ...(appVersion < 2
       ? [
           {
-            title: {t("MainPage.TitleRevealChangesOne")},
-            content: {t("MainPage.ContentRevealChangesOne")},
+            title: t("MainPage.TitleRevealChangesOne"),
+            content: t("MainPage.ContentRevealChangesOne"),
             target: refMap["reveal-next-change"],
             onClose: () => {
               setCurrentPage(4);
             },
           },
           {
-            title: {t("MainPage.TitleRevealChangesAll")},
-            content: {t("MainPage.ContentRevealChangesAll")},
+            title: t("MainPage.TitleRevealChangesAll"),
+            content: t("MainPage.ContentRevealChangesAll"),
             target: refMap["reveal-all-changes"],
             onClose: () => {
               setCurrentPage(4);
@@ -318,7 +319,7 @@ export const MainPage: React.FC<MainPageProps> = ({
             // App version 0 & 1 has the user highlighting the changes, thus we require the reveal buttons
             appVersion < 2 && (
               <Card
-                title={t("MainPage.ImproveRecipe")}
+                title={t("MainPage.ImprovedRecipe")}
                 loading={improvedRecipeLoading}
                 ref={refMap["improved-recipe-wrapper"]}
                 actions={[
@@ -394,7 +395,7 @@ export const MainPage: React.FC<MainPageProps> = ({
           }
           {appVersion >= 2 && (
             <Card
-              title={t("MainPage.ImproveRecipe")}
+              title={t("MainPage.ImprovedRecipe")}
               loading={improvedRecipeLoading}
               ref={refMap["improved-recipe-wrapper"]}
             >

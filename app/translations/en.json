@@ -1,52 +1,80 @@
 {
-    "ImprovedRecipeDisplayWordScale": {
-        "Welcome": "Welcome to Improved Recipe Display!"
+  "ImprovedRecipeDisplayWordScale": {
+    "Welcome": "Welcome to Improved Recipe Display!"
+  },
+  "WelcomeScreen": {
+    "WelcomeMessage": "Welcome to Gen-AI Kitchen!",
+    "PasswordMessage": "Write the password of the app version you want to switch to",
+    "HoverMessage": "PS: (hover here to resummon me)",
+    "ChangeAppMessage": "Change app version",
+    "SwitchLang": "Switch language to French",
+    "Start": "Start cooking",
+    "AboutUs": "About Us",
+    "DarkMode": "Toggle Dark Mode",
+    "SwitchToSentence": "Switch to sentence mode",
+    "SwitchToWord": "Switch to word mode"
+  },
+  "AppVersion": {
+    "Change": "App version changed to: ",
+    "Invalid": "Invalid password"
+  },
+  "Tour": {
+    "Change": "Change app version",
+    "Restart": "Restart tour",
+    "Warning": "You are currently in the middle of a recipe. Please finish it before restarting the tour.",
+    "WelcomeTitle": "Welcome!",
+    "WelcomeContent": "Welcome to Gen-AI Kitchen!",
+    "WelcomeScreenTitle": "Welcome screen!",
+    "WelcomeScreenContent": "This is the welcome screen. This is what you'll be using to navigate around the app.",
+    "StartCookingTitle": "Start Cooking",
+    "StartCookingContent": "Click here to go to app and start cooking!",
+    "AboutUsTitle": "About Us",
+    "AboutUsContent": "Click here to learn more about us!",
+    "ToggleDarkModeTitle": "Toggle Dark Mode",
+    "ToggleDarkModeContent": "Click here to toggle dark mode!",
+    "SwitchToSentenceModeTitle": "Switch to sentence mode",
+    "SwitchToSentenceModeContent": "Click here to mark the changes in sentence scale! Don't worry, this will be explained more in detail later!",
+    "ChangeAppVersionTitle": "Change app version",
+    "ChangeAppVersionContent": "We have several variants of the app, you can switch between them here! (You require the password for each version)",
+    "RestartTourTitle": "Restart Tour",
+    "RestartTourContent": "You can always restart the tour by clicking here!"
+  },
+  "ResultPage": {
+    "End": "Great, you're all done! Thank you. You'll be redirected to the homepage "
+  },
+  "MainPage": {
+    "TitleImproveRecipe": "Your improved recipe will be here!",
+    "ContentWordScale": "You will be asked to find out the changes either in word-scale or sentence-scale(Remember you can always switch the scale from the menu!)",
+    "ContentHighlightedChanges": "The changes will already be highlighted for you!",
+    "TitleCheckAppVersion": "Check the app version!",
+    "ContentCheckAppVersion": "You can check the current variant/version of the app you are using, by clicking here. It should be right now {appVersion}",
+    "TitleRevealChangesOne": "Reveal the changes!",
+    "ContentRevealChangesOne": "Click here to reveal one of the changes!",
+    "TitleRevealChangesAll": "Reveal the changes!",
+    "ContentRevealChangesAll": "Click here to reveal all of the changes!",
+    "ImprovedRecipe": "Improved Recipe"
+  },
+  "RecipeForm": {
+    "SubmitButton": "Get Improved Recipe",
+    "Form": "Recipe:",
+    "Slider": {
+      "Label": "Improvement Level",
+      "Level1": "Minimal Improvement",
+      "Level2": "Slight Improvement",
+      "Level3": "Moderate Improvement",
+      "Level4": "Significant Improvement",
+      "Level5": "Major Improvement"
     },
-    "WelcomeScreen": {
-        "WelcomeMessage": "Welcome to Gen-AI Kitchen!",
-        "PasswordMessage": "Write the password of the app version you want to switch to",
-        "HoverMessage": "PS: (hover here to resummon me)",
-        "ChangeAppMessage": "Change app version"
-    },
-    "AppVersion":{
-        "Change":  "App version changed to: ",
-        "Invalid": "Invalid password"
-    },
-    "Tour": {
-       "Change": "Change app version",
-       "Restart": "Restart tour",
-       "Warning": "You are currently in the middle of a recipe. Please finish it before restarting the tour.",
-       "WelcomeTitle": "Welcome!",
-       "WelcomeContent": "Welcome to Gen-AI Kitchen!",
-       "WelcomeScreenTitle": "Welcome screen!",
-       "WelcomeScreenContent": "This is the welcome screen. This is what you'll be using to navigate around the app.",
-       "StartCookingTitle": "Start Cooking",
-       "StartCookingContent": "Click here to go to app and start cooking!",
-       "AboutUsTitle": "About Us",
-       "AboutUsContent": "Click here to learn more about us!",
-       "ToggleDarkModeTitle": "Toggle Dark Mode",
-       "ToggleDarkModeContent": "Click here to toggle dark mode!",
-       "SwitchToSentenceModeTitle": "Switch to sentence mode",
-       "SwitchToSentenceModeContent": "Click here to mark the changes in sentence scale! Don't worry, this will be explained more in detail later!",
-       "ChangeAppVersionTitle": "Change app version",
-       "ChangeAppVersionContent": "We have several variants of the app, you can switch between them here! (You require the password for each version)",
-       "RestartTourTitle": "Restart Tour",
-       "RestartTourContent": "You can always restart the tour by clicking here!"
-    },
-    "ResultPage":{
-        "End": "Great, you're all done! Thank you. You'll be redirected to the homepage "
-    },
-    "MainPage": {
-        "TitleImproveRecipe": "Your improved recipe will be here!",
-        "ContentWordScale": "You will be asked to find out the changes either in word-scale or sentence-scale(Remember you can always switch the scale from the menu!)",
-        "ContentHighlightedChanges": "The changes will already be highlighted for you!",
-        "TitleCheckAppVersion": "Check the app version!",
-        "ContentCheckAppVersion": "You can check the current variant/version of the app you are using, by clicking here. It should be right now {appVersion}",
-        "TitleRevealChangesOne": "Reveal the changes!",
-        "ContentRevealChangesOne": "Click here to reveal one of the changes!",
-        "TitleRevealChangesAll": "Reveal the changes!",
-        "ContentRevealChangesAll": "Click here to reveal all of the changes!",
-        "ImprovedRecipe": "Improved Recipe",
-
-    }
+    "Warning": "Note this might result in a significant deviation from the original recipe."
+  },
+  "guider": {
+    "step1Title": "Your Recipe",
+    "step1Description": "Write your recipe! And click submit to get a new recipe!",
+    "step2Title": "Wait for it!",
+    "step2Description": "We are cooking your improved recipe! Please wait!",
+    "step3Title": "Mark the changes!",
+    "step3Description": "Your new recipe is here! Click on the words you think are new!",
+    "step4Title": "Done!",
+    "step4Description": "You are done!"
+  }
 }

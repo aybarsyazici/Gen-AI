@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { SmileOutlined } from "@ant-design/icons";
 import { Button, Result } from "antd";
+import { useTranslation } from "react-i18next";
 
 type ResultPageProps = {
   setActivePage: (page: string) => void;
@@ -8,7 +9,7 @@ type ResultPageProps = {
 
 export const ResultPage: React.FC<ResultPageProps> = ({ setActivePage }) => {
   const [redirectTimer, setRedirectTimer] = React.useState<number>(5);
-
+  const { t } = useTranslation();
   const goToHomepage = () => {
     setActivePage("app");
   };
@@ -30,7 +31,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({ setActivePage }) => {
   return (
     <Result
       icon={<SmileOutlined />}
-      title={t("ResultsPage.End")},
+      title={t("ResultsPage.End")}
       extra={
         <Button type="primary" onClick={goToHomepage}>
           Go now!
