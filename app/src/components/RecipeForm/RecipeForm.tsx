@@ -3,6 +3,7 @@ import { Form, Input, Button, Slider, Row, Col, Typography } from "antd";
 import "./RecipeForm.css";
 import { NotificationInstance } from "antd/es/notification/interface";
 import { IPageRef, TourContext } from "..";
+import { useTranslation } from "react-i18next";
 
 type RecipeFormProps = {
   submitHit: (
@@ -22,7 +23,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
   const [recipe, setRecipe] = useState<string>("");
   const [improvementLevel, setImprovementLevel] = useState<number>(0);
   const [recentlyShown, setRecentlyShown] = useState<boolean>(false);
-
+  const { t } = useTranslation();
   const handleSubmit = (fromTour?: boolean) => {
     console.log("Submitting recipe: ", recipe);
     submitHit(recipe, improvementLevel, fromTour);
@@ -32,19 +33,19 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
 
   const formatter = (value: number | undefined) => {
     if (value === undefined) {
-      return "Minimal improvement";
+      return t("RecipeForm.Slider.Level1");
     }
     switch (value) {
       case 0:
-        return "Minimal improvement";
+        return t("RecipeForm.Slider.Level1");
       case 1:
-        return "Slight improvement";
+        return t("RecipeForm.Slider.Level2");
       case 2:
-        return "Moderate improvement";
+        return t("RecipeForm.Slider.Level3");
       case 3:
-        return "Significant improvement";
+        return t("RecipeForm.Slider.Level4");
       case 4:
-        return "Major improvement";
+        return t("RecipeForm.Slider.Level5");
     }
   };
 
@@ -53,8 +54,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
     if (!recentlyShown && value === 4) {
       api.warning({
         message: "Warning",
-        description:
-          "Note this might result in a significant deviation from the original recipe.",
+        description:t("RecipeForm.Warning"),
         placement: "top",
         onClose: () => setRecentlyShown(false),
       });
@@ -129,12 +129,12 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
               ref={refMap["submit-recipe"]}
               onClick={() => handleSubmit()}
             >
-              Get Improved Recipe
+              {t("RecipeForm.SubmitButton")}
             </Button>
           </Col>
           <Col span={12}>
             <Typography.Text style={{ marginRight: "10px" }}>
-              Improvement Level
+              {t("RecipeForm.Slider.Label")}
             </Typography.Text>
             <span ref={refMap["improvement-level"]}>
               <Slider
@@ -152,7 +152,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
       </Form.Item>
       <span ref={refMap["recipe-form"]}>
         <Form.Item name="recipe" style={{ height: "100%" }}>
-          <Typography.Text type="secondary">Recipe:</Typography.Text>
+          <Typography.Text type="secondary">{t("RecipeForm.Form")}</Typography.Text>
           <Input.TextArea
             rows={8}
             className="recipe-input"

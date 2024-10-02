@@ -4,6 +4,7 @@ import {
   ArrowUpOutlined,
   CoffeeOutlined,
   EditOutlined,
+  GlobalOutlined,
   InfoCircleOutlined,
   PoweroffOutlined,
   QuestionCircleOutlined,
@@ -27,11 +28,6 @@ type WelcomeScreenProps = {
   appStep: number;
 };
 
-const menuItems = [
-  { key: "app", label: "Start Cooking", icon: <CoffeeOutlined /> },
-  { key: "about", label: "About Us", icon: <InfoCircleOutlined /> },
-  { key: "toggle", label: "Toggle Dark Mode", icon: <SettingOutlined /> },
-];
 
 // create a dictionary with app passwords
 const passwordDefinitions = {
@@ -57,7 +53,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   const switchText = currentMode === "word" ? "sentence" : "word";
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [modalText, setModalText] = React.useState("");
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const showModal = () => {
     setIsModalOpen(true);
   };
@@ -74,7 +70,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
         message: "Success",
         description:
           //@ts-ignore
-          "App version changed to " + passwordDefinitions[modalText].toString(),
+          t("AppVersion.Change") + passwordDefinitions[modalText].toString(),
         placement: "top",
       });
       setIsModalOpen(false);
@@ -82,53 +78,66 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       console.log("Invalid version");
       api.error({
         message: "Error",
-        description: "Invalid app password...",
+        description: t("AppVersion.Invalid"),
         placement: "top",
       });
     }
   };
-
   const handleCancel = () => {
     setIsModalOpen(false);
   };
   // Add one more element to the menuItems array
   const myMenuItems = [
-    ...menuItems,
+    { key: "app", label: t("WelcomeScreen.Start"), icon: <CoffeeOutlined /> },
+    { key: "about", label: t("WelcomeScreen.AboutUs"), icon: <InfoCircleOutlined /> },
+    { key: "toggle", label: t("WelcomeScreen.DarkMode"), icon: <SettingOutlined /> },
     {
       key: "sentence-mode",
-      label: `Switch to ${switchText} mode`,
+      label: switchText === "sentence" ? t("WelcomeScreen.SwitchToSentence") : t("WelcomeScreen.SwitchToWord"),
       icon: <EditOutlined />,
     },
-    { key: "modal", label: "Change app version", icon: <PoweroffOutlined /> },
-    { key: "tour", label: "Restart Tour", icon: <QuestionCircleOutlined /> },
+    {
+      key: "lang-switch", label: t("WelcomeScreen.SwitchLang"), icon: <GlobalOutlined />,
+    },
+    { key: "modal", label:  t("Tour.Change"), icon: <PoweroffOutlined /> },
+    { key: "tour", label: t("Tour.Restart"), icon: <QuestionCircleOutlined /> },
   ];
   const { startTour, doTour, setDoTour, currentPage, setCurrentPage } =
     useContext(TourContext);
 
   const onClickHandler = (key: string) => {
-    if (key === "toggle") {
-      toggleDarkMode();
-    } else if (key === "sentence-mode" && !doTour) {
-      setCurrentMode &&
-        setCurrentMode(currentMode === "word" ? "sentence" : "word");
-    } else if (key === "tour") {
-      if (activeTab === "app" && appStep !== 0) {
-        api.warning({
-          message: "Warning",
-          description:
-            "You are currently in the middle of a recipe. Please finish it before restarting the tour.",
-          placement: "top",
-        });
-        return;
-      }
-      setCurrentMode && setCurrentMode("word");
-      setDoTour(true);
-      setCurrentPage(-1);
-    } else if (key === "modal") {
-      showModal();
-    } else {
-      if (key !== "app" && doTour) return;
-      onMenuSelect(key);
+    switch (key) {
+      case "toggle":
+        toggleDarkMode();
+        break;
+      case "sentence-mode":
+        if (!doTour) {
+          setCurrentMode && setCurrentMode(currentMode === "word" ? "sentence" : "word");
+        }
+        break;
+      case "tour":
+        if (activeTab === "app" && appStep !== 0) {
+          api.warning({
+            message: "Warning",
+            description: t("Tour.Warning"),
+            placement: "top",
+          });
+          return;
+        }
+        setCurrentMode && setCurrentMode("word");
+        setDoTour(true);
+        setCurrentPage(-1);
+        break;
+      case "modal":
+        showModal();
+        break;
+      case "lang-switch":
+        i18n.changeLanguage(i18n.language === "en" ? "fr" : "en");
+        break;
+      default:
+        if (key !== "app" && doTour) return;
+        onMenuSelect(key);
+        break;
     }
   };
 
@@ -146,9 +155,8 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   const steps = useMemo(() => {
     const refs: IPageRef[] = [];
     refs.push({
-      title: "Welcome!",
-      content: `Welcome to Gen-AI Kitchen! This was conceived as a semester project at ML4ED Lab at EPFL.
-      Since this is your first time visiting (or re-requesting a tour), let us show you around!`,
+      title: t("Tour.WelcomeTitle"),
+      content: t("Tour.WelcomeContent"),
       target: refMap.empty,
       onClose: () => {
         refMap.app.current?.click();
@@ -156,8 +164,8 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       },
     });
     refs.push({
-      title: "Welcome screen!",
-      content: `This is the welcome screen. This is what you'll be using to navigate around the app.`,
+      title: t("Tour.WelcomeScreenTitle"),
+      content: t("Tour.WelcomeScreenContent"),
       target: refMap.welcome,
       onClose: () => {
         refMap.app.current?.click();
@@ -165,8 +173,8 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       },
     });
     refs.push({
-      title: "Start Cooking",
-      content: "Click here to go to app and start cooking!",
+      title: t("Tour.StartCookingTitle"),
+      content: t("Tour.StartCookingContent"),
       target: refMap.app,
       onClose: () => {
         refMap.app.current?.click();
@@ -174,8 +182,8 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       },
     });
     refs.push({
-      title: "About Us",
-      content: "Click here to learn more about us!",
+      title: t("Tour.AboutUsTitle"),
+      content: t("Tour.AboutUsContent"),
       target: refMap.about,
       onClose: () => {
         refMap.app.current?.click();
@@ -183,8 +191,8 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       },
     });
     refs.push({
-      title: "Toggle Dark Mode",
-      content: "Click here to toggle dark mode!",
+      title: t("Tour.ToggleDarkModeTitle"),
+      content: t("Tour.ToggleDarkModeContent"),
       target: refMap.toggle,
       onClose: () => {
         refMap.app.current?.click();
@@ -192,9 +200,8 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       },
     });
     refs.push({
-      title: "Switch to sentence mode",
-      content:
-        "Click here to mark the changes in sentence scale! Don't worry, this will be explained more in detail later!",
+      title: t("Tour.SwitchToSentenceModeTitle"),
+      content: t("Tour.SwitchToSentenceModeContent"),
       target: refMap["sentence-mode"],
       onClose: () => {
         setCurrentPage(1);
@@ -202,9 +209,8 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       },
     });
     refs.push({
-      title: "Change app version",
-      content:
-        "We have several variants of the app, you can switch between them here!(You require the password for each version)",
+      title: t("Tour.ChangeAppVersionTitle"),
+      content: t("Tour.ChangeAppVersionContent"),
       target: refMap.modal,
       onClose: () => {
         setCurrentPage(1);
@@ -212,8 +218,8 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       },
     });
     refs.push({
-      title: "Restart Tour",
-      content: "You can always restart the tour by clicking here!",
+      title: t("Tour.RestartTourTitle"),
+      content: t("Tour.RestartTourContent"),
       target: refMap.tour,
       onClose: () => {
         setCurrentPage(1);
@@ -222,6 +228,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
     });
     return refs;
   }, [refMap, setCurrentPage]);
+
 
   useEffect(() => {
     if (!doTour) return;
@@ -237,19 +244,19 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       data-theme={isDarkMode ? "dark" : "light"}
     >
       <Modal
-        title="Change app version"
+        title={t("WelcomeScreen.ChangeAppMessage")}
         open={isModalOpen}
         onOk={handleOk}
         onCancel={handleCancel}
       >
         <Input
-          placeholder="Write the password of the app version you want to switch to"
+          placeholder={t("WelcomeScreen.PasswordMessage")}
           value={modalText}
           onChange={(e) => setModalText(e.target.value)}
         />
       </Modal>
       <Text className="menu-info-text">
-        <ArrowUpOutlined /> PS: (hover here to resummon me) <ArrowUpOutlined />
+        <ArrowUpOutlined /> {t("WelcomeScreen.HoverMessage")}  <ArrowUpOutlined />
       </Text>
       <span ref={refMap.welcome as React.RefObject<HTMLDivElement>}>
         <List

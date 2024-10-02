@@ -1,25 +1,28 @@
 import React, { useMemo } from "react";
 import { Steps } from "antd";
+import { useTranslation } from "react-i18next";
 
 type GuiderProps = {
   currentStep: number;
 };
 
 export const Guider: React.FC<GuiderProps> = ({ currentStep }) => {
+  const { t } = useTranslation();
+
   const descriptions = useMemo(
     () =>
       [
-        "Write your recipe! And click submit to get a new recipe!",
-        "We are cooking your improved recipe! Please wait!",
-        "Your new recipe is here! Click on the words you think are new!",
-        "You are done!",
+        t("guider.step1Description"),
+        t("guider.step2Description"),
+        t("guider.step3Description"),
+        t("guider.step4Description"),
       ].map((description, index) => {
         if (index === currentStep) {
           return description;
         }
         return "";
       }),
-    [currentStep],
+    [currentStep, t],
   );
 
   return (
@@ -27,19 +30,19 @@ export const Guider: React.FC<GuiderProps> = ({ currentStep }) => {
       current={currentStep}
       items={[
         {
-          title: "Your Recipe",
+          title: t("guider.step1Title"),
           description: descriptions[0],
         },
         {
-          title: "Wait for it!",
+          title: t("guider.step2Title"),
           description: descriptions[1],
         },
         {
-          title: "Mark the changes!",
+          title: t("guider.step3Title"),
           description: descriptions[2],
         },
         {
-          title: "Done!",
+          title: t("guider.step4Title"),
           description: descriptions[3],
         },
       ]}
