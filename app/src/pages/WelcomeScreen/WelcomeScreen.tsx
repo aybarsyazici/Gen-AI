@@ -93,7 +93,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
     { key: "toggle", label: t("WelcomeScreen.DarkMode"), icon: <SettingOutlined /> },
     {
       key: "sentence-mode",
-      label: switchText === "sentence" ? t("WelcomeScreen.SwitchToWord") : t("WelcomeScreen.SwitchToSentence"),
+      label: switchText === "sentence" ? t("WelcomeScreen.SwitchToSentence") : t("WelcomeScreen.SwitchToWord"),
       icon: <EditOutlined />,
     },
     {
